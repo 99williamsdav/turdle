@@ -1,0 +1,215 @@
+
+<div *ngIf="roundState.status == 'Waiting' || roundState.status == 'Ready'">
+  <div class="row">
+    <div class="col-md-1"></div>
+
+    <div class="col-md-3">
+      <h2 class="room-code">
+        {{ roomCode }}
+        <span (click)="copyUrl()">🔗</span>
+      </h2>
+      <h1 id="tableLabel">Players</h1>
+      <table class='table table' aria-labelledby="tableLabel">
+        <tbody>
+        <tr *ngFor="let player of roundState.players; trackBy: trackByUtils.trackByPlayer">
+          <td *ngIf="player.alias != currentPlayer?.alias">{{ player.alias }}</td>
+          <th *ngIf="player.alias == currentPlayer?.alias">
+            {{ player.alias }}
+            <button class="btn btn-sm btn-outline-info" (click)="logOut()">Change</button>
+          </th>
+          <td>{{ player.ready ? '✅' : '' }}</td>
+          <td>{{ player.isConnected ? '' : '🔌' }}</td>
+          <td>
+            <button class="btn btn-sm btn-warning"
+                    *ngIf="currentPlayer != null && player.alias == currentPlayer.alias && currentPlayer.ready" (click)="toggleReady(!currentPlayer.ready)">
+              Not ready
+            </button>
+            <button class="btn btn-sm btn-info"
+                    *ngIf="currentPlayer != null && player.alias == currentPlayer.alias && !currentPlayer.ready" (click)="toggleReady(!currentPlayer.ready)">
+              Ready!
+            </button>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="col-md-4" *ngIf="isConnected && !currentPlayer">
+      <h2>Please enter your name, turdler</h2>
+      <form [formGroup]="aliasForm" (ngSubmit)="registerAlias()">
+        <div class="form-row">
+          <div class="form-group col-md-10">
+            <label for="inputAlias">Name</label>
+            <div class="input-group">
+              <input type="text" class="form-control" id="inputAlias" formControlName="Alias" autofocus required>
+              <div class="input-group-append">
+                <button type="submit" [disabled]="!aliasForm.valid || !isConnected" class="btn btn-success">Go!</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+      <br/>
+      <a class="btn btn-dark" [routerLink]="['/tv', { code: roomCode }]">Watch</a>
+    </div>
+
+    <div class="col-md-4" *ngIf="currentPlayer">
+      <div *ngIf="roundState.status == 'Waiting' && currentPlayer?.ready">
+        <h3>Waiting for others</h3>
+      </div>
+      <div *ngIf="roundState.status == 'Ready'">
+<!--        <button class="btn btn-success" (click)="startGame()">Start!</button>-->
+        <game-board *ngIf="fakeReadyGameBoard != null" [board]="fakeReadyGameBoard" [currentWord]="fakeReadyGameWord" [wordLength]="5" [maxGuesses]="6"></game-board>
+        <keyboard *ngIf="fakeReadyGameBoard != null" [currentBoard]="fakeReadyGameBoard" (keyPress)="clickFakeReadyKey($event)"></keyboard>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <point-schedule *ngIf="pointSchedule != null" [pointSchedule]="pointSchedule" [playerCount]="roundState.players.length"></point-schedule>
+    </div>
+  </div>
+</div>
+
+<div class="row" *ngIf="(roundState.status == 'Playing' || roundState.status == 'Finished') && currentBoard != null">
+  <div class="col-md-4" *ngIf="!isSmallScreen">
+
+    <div class="row">
+      <div class="col-md-6" *ngFor="let player of leftPlayers; trackBy: trackByUtils.trackByPlayer">
+        <div class="d-flex justify-content-between">
+          <h4>
+            <span class="badge alert-primary">
+              {{ player.board?.isJointRank ? '=' : '' }}{{ player.board?.rank }}<sup>{{ player.board?.rank | ordinal }}</sup>
+            </span>
+          </h4>
+          <h4>{{ player.alias }}{{ player.isConnected ? '' : '🔌' }}</h4>
+          <h4>
+            <span class="badge alert-info">{{ player.board?.points }}pts</span>
+          </h4>
+        </div>
+
+        <game-board [board]="player.board" [wordLength]="roundState.wordLength" [maxGuesses]="roundState.maxGuesses"></game-board>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="col-md-4">
+    <div class="row">
+      <div class="col-md-2"></div>
+      <div class="col-md-8">
+        <div class="d-flex justify-content-between">
+          <h2>
+            <span class="badge alert-primary unselectable" (click)="roundState.status == 'Finished' && startGame()">
+              {{ currentPlayer?.board?.isJointRank ? '=' : '' }}{{ currentPlayer?.board?.rank }}<sup>{{ currentPlayer?.board?.rank | ordinal:false }}</sup>
+            </span>
+          </h2>
+          <h2>Go {{ currentPlayer?.alias }}!</h2>
+          <h2>
+            <span class="badge alert-info">{{ currentPlayer?.board?.points }}pts</span>
+          </h2>
+        </div>
+      </div>
+    </div>
+
+    <game-board [board]="currentBoard" [currentWord]="currentWord" [guessDeadlines]="roundState.guessDeadlines" [wordLength]="roundState.wordLength"
+                [currentExpectedGuessCount]="roundState.currentExpectedGuessCount" [nextGuessDeadline]="roundState.nextGuessDeadline"
+                [guessTimeLimitMs]="roundState.guessTimeLimitMs" [maxGuesses]="roundState.maxGuesses"></game-board>
+
+    <keyboard [currentBoard]="currentBoard" (keyPress)="clickKey($event)"></keyboard>
+
+    <div class="text-center">
+      <a *ngIf="currentBoard.status == 'Playing'" (click)="suggestGuess()" class="btn btn-lg btn-outline-info unselectable">
+        Suggest Word
+        <span class="badge alert-danger" *ngIf="pointSchedule != null">{{ pointSchedule.suggestedGuessCostPoints * -1 }}pts</span>
+      </a>
+      <a *ngIf="currentBoard.status == 'Playing'" (click)="revealAbsentLetter()" class="btn btn-lg btn-outline-dark unselectable">
+        Reveal Absent
+        <span class="badge alert-danger" *ngIf="pointSchedule != null">{{ pointSchedule.revealedAbsentCostPoints * -1 }}pts</span>
+      </a>
+      <a *ngIf="currentBoard.status == 'Playing'" (click)="revealPresentLetter()" class="btn btn-lg btn-outline-warning unselectable">
+        Buy Yellow
+        <span class="badge alert-danger" *ngIf="pointSchedule != null">{{ pointSchedule.revealedPresentCostPoints * -1 }}pts</span>
+      </a>
+    </div>
+
+    <div class="correct-answer" *ngIf="roundState.correctAnswer != null">{{ roundState.correctAnswer }}</div>
+    <div class="correct-answer-tagline" *ngIf="currentBoard.status == 'Solved' && currentBoard.completionTimeMs != null">
+      You solved it in {{ currentBoard.completionTimeMs | formatMilliseconds }}
+    </div>
+    <div class="correct-answer-tagline" *ngIf="currentBoard.status == 'Failed'">You failed to solve the word ☹️</div>
+  </div>
+
+  <div class="col-md-2" *ngIf="!isSmallScreen">
+    <div class="row">
+
+      <div *ngFor="let player of rightPlayers; trackBy: trackByUtils.trackByPlayer" class="col-md-12">
+        <div class="d-flex justify-content-between">
+          <h4>
+            <span class="badge alert-primary">
+              {{ player.board?.isJointRank ? '=' : '' }}{{ player.board?.rank }}<sup>{{ player.board?.rank | ordinal:false }}</sup>
+            </span>
+          </h4>
+          <h4>{{ player.alias }}{{ player.isConnected ? '' : '🔌' }}</h4>
+          <h4>
+            <span class="badge alert-info">{{ player.board?.points }}pts</span>
+          </h4>
+        </div>
+        <game-board [board]="player.board" [wordLength]="roundState.wordLength" [maxGuesses]="roundState.maxGuesses"></game-board>
+      </div>
+
+    </div>
+  </div>
+
+  <div *ngIf="isSmallScreen">
+    <hr />
+    <div *ngFor="let player of roundState.players | notAlias:currentPlayer?.alias | orderBy:'registeredAt'; trackBy: trackByUtils.trackByPlayer" class="col-12">
+      <div class="d-flex justify-content-between">
+        <h4>
+            <span class="badge alert-primary">
+              {{ player.board?.isJointRank ? '=' : '' }}{{ player.board?.rank }}<sup>{{ player.board?.rank | ordinal:false }}</sup>
+            </span>
+        </h4>
+        <h4>{{ player.alias }}{{ player.isConnected ? '' : '🔌' }}</h4>
+        <h4>
+          <span class="badge alert-info">{{ player.board?.points }}pts</span>
+        </h4>
+      </div>
+      <game-board [board]="player.board" [wordLength]="roundState.wordLength" [maxGuesses]="roundState.maxGuesses"></game-board>
+    </div>
+  </div>
+
+  <div class="col-md-2">
+    <div class="card">
+      <div class="card-body">
+        <table class="table">
+          <thead>
+          <tr>
+            <th></th><th></th><th>Total</th><th>Round {{ roundState.roundNumber }}</th>
+          </tr>
+          </thead>
+          <tr *ngFor="let player of roundState.players | orderBy:'rank'; trackBy: trackByUtils.trackByPlayer">
+            <td>
+            <span class="badge alert-primary">
+              {{ player.isJointRank ? '=' : '' }}{{ player.rank }}<sup>{{ player.rank | ordinal:false }}</sup>
+            </span>
+            </td>
+            <th>{{ player.alias }}</th>
+            <th>{{ player.points }}</th>
+            <th>{{ player.board?.points | showPlus }}</th>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <br/>
+    <point-schedule *ngIf="pointSchedule != null" [pointSchedule]="pointSchedule" [playerCount]="roundState.players.length"></point-schedule>
+  </div>
+</div>
+
+<div *ngIf="roundState.status == 'Starting' && secondsUntilStart != null" class="countdown">
+  <h1>Starting Round {{ roundState.roundNumber }}</h1>
+  <h1 *ngIf="secondsUntilStart > 0">{{ secondsUntilStart }}</h1>
+  <h1 *ngIf="secondsUntilStart == 0">GO!</h1>
+</div>

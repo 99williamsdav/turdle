@@ -1,0 +1,13 @@
+﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=19dfe641_002D3c60_002D4633_002D9eaa_002D94b6dbf166ea/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="InitTileStatus" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::B41796C6-F9D0-4392-978C-E2130ADECD48::net6.0::Turdle.Tests.RowTests.InitTileStatus&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::B41796C6-F9D0-4392-978C-E2130ADECD48::net6.0::Turdle.Tests.BoardTests.TestErrors&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::B41796C6-F9D0-4392-978C-E2130ADECD48::net6.0::Turdle.Tests.BoardTests.TestRanking&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::B41796C6-F9D0-4392-978C-E2130ADECD48::net6.0::Turdle.Tests.BoardTests.TestThirdGuessErrors&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::B41796C6-F9D0-4392-978C-E2130ADECD48::net6.0::Turdle.Tests.RowTests.TestPointRatio&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::B41796C6-F9D0-4392-978C-E2130ADECD48::net6.0::Turdle.Tests.WordServiceTests.PossibleValidGuesses&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::B41796C6-F9D0-4392-978C-E2130ADECD48::net6.0::Turdle.Tests.WordServiceTests.ImpossibleValidGuesses&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;xUnit::B41796C6-F9D0-4392-978C-E2130ADECD48::net6.0::Turdle.Tests.WordServiceTests&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

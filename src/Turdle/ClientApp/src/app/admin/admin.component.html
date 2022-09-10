@@ -1,0 +1,131 @@
+<div class="row">
+  <div class="col-md-4">
+    <table class="table">
+      <tr>
+        <td colspan="2"><button type="button" class="btn btn-outline-danger btn-sm" (click)="hardReset()">Hard Reset</button></td>
+      </tr>
+      <tr>
+        <th>Game state</th><td>{{ roundState.status }}</td>
+        <td><button type="button" class="btn btn-outline-success btn-sm" *ngIf="roundState.status == 'Finished'" (click)="startGame()">Start New</button></td>
+      </tr>
+      <tr>
+        <th>Start Time</th><td>{{ roundState.startTime }} ({{ secondsUntilStart }})</td><td></td>
+      </tr>
+      <tr>
+        <th>Player Count</th><td>{{ roundState.players?.length }}</td><td></td>
+      </tr>
+      <tr><th>Current Round</th><td>{{ roundState.roundNumber }}</td></tr>
+    </table>
+
+    <hr/>
+    <div *ngIf="pointSchedule != null">
+      <h4>Points</h4>
+      <table class="table">
+        <tr>
+          <th>Type</th>
+          <td colspan="6"><input class="form-control form-control-sm" type="text" [(ngModel)]="pointSchedule.pointScaleType"></td>
+        </tr>
+        <tr>
+          <th>Solved on</th>
+          <th *ngFor="let i of enumerate(6)">{{ (i + 1) | ordinal:true }}</th>
+        </tr>
+        <tr>
+          <td></td>
+          <td *ngFor="let i of enumerate(6)">
+            <input class="form-control form-control-sm" type="number" [(ngModel)]="pointSchedule.solutionGuessNumberPoints[i]">
+          </td>
+        </tr>
+        <tr>
+          <th colspan="2">First Correct</th>
+          <td colspan="3"><input class="form-control form-control-sm" type="number" [(ngModel)]="pointSchedule.firstCorrectAnswerPoints"></td>
+        </tr>
+        <tr><th colspan="2">Costs</th></tr>
+        <tr>
+          <td colspan="2">Suggest Guess</td>
+          <td colspan="3"><input class="form-control form-control-sm" type="number" [(ngModel)]="pointSchedule.suggestedGuessCostPoints"></td>
+        </tr>
+        <tr>
+          <td colspan="2">Reveal Absent</td>
+          <td colspan="3"><input class="form-control form-control-sm" type="number" [(ngModel)]="pointSchedule.revealedAbsentCostPoints"></td>
+        </tr>
+        <tr>
+          <td colspan="2">Reveal Present</td>
+          <td colspan="3"><input class="form-control form-control-sm" type="number" [(ngModel)]="pointSchedule.revealedPresentCostPoints"></td>
+        </tr>
+        <tr>
+          <th>Errors</th>
+        </tr>
+        <tr>
+          <td colspan="2">Absent Played</td>
+          <td colspan="3"><input class="form-control form-control-sm" type="number" [(ngModel)]="pointSchedule.hardModeErrorPoints['AbsentLetterPlayed']"></td>
+        </tr>
+        <tr>
+          <td colspan="2">Correct Letter Missed</td>
+          <td colspan="3"><input class="form-control form-control-sm" type="number" [(ngModel)]="pointSchedule.hardModeErrorPoints['CorrectLetterMissed']"></td>
+        </tr>
+        <tr>
+          <td colspan="2">Present Letter Missed</td>
+          <td colspan="3"><input class="form-control form-control-sm" type="number" [(ngModel)]="pointSchedule.hardModeErrorPoints['PresentLetterMissed']"></td>
+        </tr>
+        <tr>
+          <td colspan="2">Present Letter Played In Same Place</td>
+          <td colspan="3"><input class="form-control form-control-sm" type="number" [(ngModel)]="pointSchedule.hardModeErrorPoints['PresentLetterPlayedInSamePlace']"></td>
+        </tr>
+      </table>
+      <button class="btn btn-info" (click)="updatePointSchedule()">Save</button>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Alias</th>
+          <th>Connection ID</th>
+          <th></th>
+          <th></th>
+          <th>Total Points</th>
+          <th>Round Points</th>
+          <th>Round Guesses</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tr *ngFor="let player of roundState.players">
+        <th>{{ player.alias }}</th>
+        <td>{{ player.connectionId }}</td>
+        <td>{{ player.ready ? '✅' : '' }}</td>
+        <td>{{ player.isConnected ? '' : '🔌' }}</td>
+        <td>{{ player.points }}</td>
+        <td>{{ player.board?.points }}</td>
+        <td>{{ player.board?.rows?.length }}</td>
+        <td>
+          <button type="button" class="btn btn-outline-danger btn-sm" (click)="kickPlayer(player.alias)">Kick</button>
+          <button type="button" class="btn btn-outline-warning btn-sm" (click)="disconnectPlayer(player.alias)">Disconnect</button>
+        </td>
+      </tr>
+    </table>
+
+    <div class="row">
+      <div class="col-6">
+        <table class="table">
+          <tr>
+            <th>Guess Time Limit (seconds)</th>
+            <td><input class="form-control" type="number" [(ngModel)]="guessTimeLimitSeconds"></td>
+            <td><button type="button" class="btn btn-success" (click)="updateGuessTimeLimit()">Update</button></td>
+          </tr>
+          <tr>
+            <th>Word Length</th>
+            <td><input class="form-control" type="number" [(ngModel)]="wordLength"></td>
+            <td><button type="button" class="btn btn-success" (click)="updateWordLength()">Update</button></td>
+          </tr>
+          <tr>
+            <th>Max Guesses</th>
+            <td><input class="form-control" type="number" [(ngModel)]="maxGuesses"></td>
+            <td><button type="button" class="btn btn-success" (click)="updateMaxGuesses()">Update</button></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+

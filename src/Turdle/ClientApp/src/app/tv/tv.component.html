@@ -1,0 +1,77 @@
+<div class="container" *ngIf="roundState.status == 'Waiting' || roundState.status == 'Ready'">
+  <div class="row">
+    <div class="col-md-4">
+      <h1 id="tableLabel">{{ roundState.status }}</h1>
+      <table class='table table' aria-labelledby="tableLabel">
+        <tbody>
+        <tr *ngFor="let player of roundState.players; trackBy: trackByUtils.trackByPlayer">
+          <td>{{ player.alias }}</td>
+          <td>{{ player.ready ? '✅' : '' }}</td>
+          <td>{{ player.isConnected ? '' : '🔌' }}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="row" *ngIf="roundState.status == 'Playing' || roundState.status == 'Finished'">
+  <div class="col-md-10">
+
+    <div class="row">
+      <div class="col-md-3" *ngFor="let player of roundState.players; trackBy: trackByUtils.trackByPlayer">
+        <div class="d-flex justify-content-between">
+          <h4>
+            <span class="badge alert-primary">
+              {{ player.board?.isJointRank ? '=' : '' }}{{ player.board?.rank }}<sup>{{ player.board?.rank | ordinal }}</sup>
+            </span>
+          </h4>
+          <h4>{{ player.alias }}{{ player.isConnected ? '' : '🔌' }}</h4>
+          <h4>
+            <span class="badge alert-info">{{ player.board?.points }}pts</span>
+          </h4>
+        </div>
+
+        <game-board [board]="player.board" [wordLength]="roundState.wordLength" [maxGuesses]="roundState.maxGuesses"></game-board>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="col-md-2">
+    <div class="card">
+      <div class="card-body">
+        <table class="table">
+          <thead>
+          <tr>
+            <th></th><th></th><th>Total</th><th>Round {{ roundState.roundNumber }}</th>
+          </tr>
+          </thead>
+          <tr *ngFor="let player of roundState.players | orderBy:'rank'; trackBy: trackByUtils.trackByPlayer">
+            <td>
+            <span class="badge alert-primary">
+              {{ player.isJointRank ? '=' : '' }}{{ player.rank }}<sup>{{ player.rank | ordinal:false }}</sup>
+            </span>
+            </td>
+            <th>{{ player.alias }}</th>
+            <th>{{ player.points }}</th>
+            <th>{{ player.board?.points | showPlus }}</th>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <br/>
+    <point-schedule *ngIf="pointSchedule != null" [pointSchedule]="pointSchedule" [playerCount]="roundState.players.length"></point-schedule>
+  </div>
+</div>
+
+<div *ngIf="secondsUntilStart != null">
+  <div *ngIf="(secondsUntilStart > 0 || roundState.status == 'Starting') && roundState.status != 'Playing'" class="countdown">
+    <h1 *ngIf="roundState.status == 'Starting'">Starting Round {{ roundState.roundNumber }}</h1>
+    <h1 *ngIf="secondsUntilStart > 0">{{ secondsUntilStart }}</h1>
+    <h1 *ngIf="secondsUntilStart == 0">GO!</h1>
+  </div>
+</div>

@@ -1,0 +1,12 @@
+.letter-color[data-status='Correct'] {
+  background-color: #6aaa64;
+  color: white;
+}
+.letter-color[data-status='Present'] {
+  background-color: #c9b458;
+  color: white;
+}
+.letter-color[data-status='Absent'] {
+  background-color: #787c7e;
+  color: white;
+}

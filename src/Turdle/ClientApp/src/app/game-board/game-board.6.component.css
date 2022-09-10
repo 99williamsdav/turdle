@@ -1,0 +1,64 @@
+/* 6 LETTER WORDS */
+
+.word-length-6 td.game-tile {
+  width: 12%;
+}
+.word-length-6.mini-board td.game-tile {
+  font-size: 20px;
+}
+.word-length-6.mini-board td {
+  height: 35px;
+  padding: 2px;
+}
+
+.word-length-6.mini-board td.order-cell {
+  font-size: 20px;
+}
+.word-length-6.mini-board td.points-cell {
+  font-size: 20px;
+}
+
+.word-length-6 td.order-cell {
+  width: 14%;
+}
+.word-length-6 td.points-cell {
+  width: 14%;
+}
+
+@media (min-width: 768px) {
+  .word-length-6.player-board td {
+    height: 70px;
+    padding: 3px;
+  }
+  .word-length-6.player-board td.game-tile {
+    font-weight: bold;
+    font-size: 40px;
+  }
+  .word-length-6.player-board td.points-cell {
+    font-size: 30px;
+  }
+  .word-length-6.player-board td.order-cell {
+    font-size: 30px;
+  }
+}
+@media (max-width: 768px) {
+  .word-length-6.player-board td {
+    height: 40px;
+    padding: 2px;
+  }
+  .word-length-6.player-board td.game-tile {
+    font-weight: bold;
+    font-size: 30px;
+  }
+  .word-length-6.player-board td.points-cell {
+    font-size: 25px;
+  }
+  .word-length-6.player-board td.order-cell {
+    font-size: 25px;
+  }
+}
+
+.word-length-6 tr.point-adjustment>td {
+  font-size: 20px;
+  height: 40px;
+}

@@ -1,0 +1,45 @@
+td.game-tile {
+  text-align: center;
+}
+td.order-cell {
+  text-align: center;
+}
+td.points-cell {
+  text-align: center;
+}
+
+.current-row > .game-tile {
+  color: black;
+  border: 1px solid black;
+}
+.played-row > .game-tile {
+  color: white;
+  border: 1px solid white;
+}
+.unplayed-row > .game-tile {
+  border: 1px solid black;
+}
+
+span.solved-order {
+  font-weight: bold;
+  color: goldenrod;
+}
+
+.player-board {
+  position: relative;
+}
+
+.time-limit-line {
+  position: absolute;
+  top: 50%;
+  left: 15%;
+  right: 15%;
+  border-top: 1px solid red;
+  /*background: black;*/
+  /*transform: translateY(-50%);*/
+  transition: all .2s;
+  -webkit-transition: all .2s;
+  -moz-transition: all .2s;
+  -o-transition: all .2s;
+  -ms-transition: all .2s;
+}

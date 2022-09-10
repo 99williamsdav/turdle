@@ -1,0 +1,27 @@
+.countdown {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-right: -50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.correct-answer {
+  text-align: center;
+  font-weight: bold;
+  font-size: 90px;
+  color: magenta;
+  margin-top: -30px;
+}
+.correct-answer-tagline {
+  text-align: center;
+  font-size: 25px;
+}
+
+.room-code {
+  text-align: center;
+}
+.room-code>span {
+  cursor: pointer;
+}

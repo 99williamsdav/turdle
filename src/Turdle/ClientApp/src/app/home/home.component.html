@@ -1,0 +1,21 @@
+<div class="container" *ngIf="isConnected">
+<!--  <h2>Please enter your name, turdler</h2>-->
+<!--  <form [formGroup]="aliasForm" (ngSubmit)="registerAlias()">-->
+<!--    <div class="form-row">-->
+<!--      <div class="form-group col-md-6">-->
+<!--        <label for="inputAlias">Name</label>-->
+<!--        <div class="input-group">-->
+<!--          <input type="text" class="form-control" id="inputAlias" formControlName="Alias" autofocus required>-->
+<!--          <div class="input-group-append">-->
+<!--            <button type="submit" [disabled]="!aliasForm.valid || !isConnected" class="btn btn-success">Go!</button>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </div>-->
+<!--  </form>-->
+  <button class="btn btn-info" (click)="createRoom()">Create New Room</button>
+</div>
+
+<div class="container" *ngIf="!isConnected">
+  Connecting...
+</div>

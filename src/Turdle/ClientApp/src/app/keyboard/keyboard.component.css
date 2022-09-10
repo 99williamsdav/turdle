@@ -1,0 +1,15 @@
+td.keyboard-key {
+  font-size: 30px;
+  font-weight: bold;
+  text-align: center;
+  width: 10%;
+}
+
+.letter-instance-count {
+  font-size: 15px;
+  top: -1.2em;
+  padding: 4px;
+}
+.letter-instance-count:first-child {
+  visibility: hidden;
+}

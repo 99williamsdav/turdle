@@ -1,0 +1,41 @@
+<div class="card points-card">
+  <div class="card-body">
+
+    <h5>Points</h5>
+    <table class="table">
+      <tr><th>Solved on</th><td></td></tr>
+      <tr *ngFor="let i of enumerate(6)">
+        <td>{{ (i + 1) | ordinal:true }} guess</td>
+        <td>{{ pointSchedule.solutionGuessNumberPoints[i] | showPlus }}</td>
+      </tr>
+    </table>
+    <hr/>
+    <table class="table" *ngIf="pointSchedule.pointScaleType == 'Dynamic' && playerCount > 1">
+      <tr *ngFor="let i of enumerate(playerCount)">
+        <td>{{ (i + 1) | ordinal:true }} to solve</td>
+        <td>{{ pointSchedule.firstCorrectAnswerPoints - (pointSchedule.firstCorrectAnswerPoints / playerCount) * i | showPlus:0 }}</td>
+      </tr>
+    </table>
+    <hr/>
+    <h6>Error Penalties</h6>
+    <table class="table" *ngIf="pointSchedule != null">
+      <tr>
+        <td>Absent Letter Played</td>
+        <td>{{ pointSchedule.hardModeErrorPoints['AbsentLetterPlayed'] | showPlus }}</td>
+      </tr>
+      <tr>
+        <td>Correct Letter Missed</td>
+        <td>{{ pointSchedule.hardModeErrorPoints['CorrectLetterMissed'] | showPlus }}</td>
+      </tr>
+      <tr>
+        <td>Present Letter Missed</td>
+        <td>{{ pointSchedule.hardModeErrorPoints['PresentLetterMissed'] | showPlus }}</td>
+      </tr>
+      <tr>
+        <td>Present Letter Played In Same Place</td>
+        <td>{{ pointSchedule.hardModeErrorPoints['PresentLetterPlayedInSamePlace'] | showPlus }}</td>
+      </tr>
+    </table>
+
+  </div>
+</div>

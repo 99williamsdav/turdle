@@ -1,0 +1,11 @@
+<table class="table player-keyboard">
+  <tr *ngFor="let row of keys" class="keyboard-row">
+    <td *ngFor="let letter of row" class="keyboard-key letter-color unselectable" [attr.data-status]="currentBoard.letterStatuses[letter]" (click)="keyClicked(letter)">
+      <sup *ngIf="currentBoard.presentLetterCounts[letter] > 1" class="letter-instance-count">{{ currentBoard.presentLetterCounts[letter] }}</sup>{{ letter }}<sup *ngIf="currentBoard.presentLetterCounts[letter] > 1" class="letter-instance-count">{{ currentBoard.presentLetterCounts[letter] }}</sup>
+    </td>
+  </tr>
+  <tr class="keyboard-row">
+    <td class="keyboard-key unselectable" colspan="5" (click)="keyClicked('Enter')">ENTER ↲</td>
+    <td class="keyboard-key unselectable" colspan="5" (click)="keyClicked('Backspace')">BACKSPACE ⇐</td>
+  </tr>
+</table>
