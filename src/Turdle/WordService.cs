@@ -17,20 +17,6 @@ public class WordService
         PopulateWords(4);
         PopulateWords(5);
         PopulateWords(6);
-
-        var answers = _possibleAnswers[5];
-
-        var vowels = "AEIOU";
-        var wordsWithE = answers.Where(x => x.Contains('E'));
-        var res = vowels.Select(c => (c, wordsWithE.Count(w => w.Contains(c)))).ToList();
-        var res2 = wordsWithE.Count(w => w.Count(c => c == 'E') >= 2);
-
-        foreach (var vowel in vowels)
-        {
-            var grouped = answers.GroupBy(x => x.Count(c => c == vowel))
-                .Select(grp => (grp.Key, grp.Count()))
-                .ToList();
-        }
     }
 
     public string GetRandomWord(int length)
