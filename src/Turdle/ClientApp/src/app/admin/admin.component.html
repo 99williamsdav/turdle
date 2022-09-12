@@ -1,4 +1,38 @@
+<div class="container">
 <div class="row">
+  <div class="col-md-12">
+
+    <div class="container" *ngIf="!isConnected">
+      Connecting...
+    </div>
+
+    <table class="table table-hover" *ngIf="isConnected">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Started</th>
+          <th>Players</th>
+          <th>Creator</th>
+          <th>Round</th>
+          <th>Current Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let room of rooms" (click)="selectRoom(room.roomCode)">
+          <th>{{ room.roomCode }}</th>
+          <td>{{ room.createdOn | date:'dd/MM HH:mm' }}</td>
+          <td>{{ room.players.length }}</td>
+          <td>{{ room.adminAlias }}</td>
+          <td>{{ room.roundNumber }}</td>
+          <td>{{ room.currentRoundStatus }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+</div>
+
+<div class="row" *ngIf="roomCode">
   <div class="col-md-4">
     <table class="table">
       <tr>
@@ -129,3 +163,4 @@
   </div>
 </div>
 
+</div>

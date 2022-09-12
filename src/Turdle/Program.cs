@@ -28,6 +28,15 @@ builder.Services.AddSignalR()
     {
         options.PayloadSerializerOptions.Converters
             .Add(new JsonStringEnumConverter());
+    }).AddHubOptions<GameHub>(options =>
+    {
+        options.EnableDetailedErrors = true;
+    }).AddHubOptions<AdminHub>(options =>
+    {
+        options.EnableDetailedErrors = true;
+    }).AddHubOptions<HomeHub>(options =>
+    {
+        options.EnableDetailedErrors = true;
     });
 //builder.Services.AddSingleton<GameHubService>();
 builder.Services.AddSingleton<RoomManager>();
@@ -43,8 +52,6 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-
-var x = new WordService();
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
@@ -63,12 +70,5 @@ app.MapHub<AdminHub>("/adminHub");
 app.MapHub<HomeHub>("/homeHub");
 
 app.MapFallbackToFile("index.html");
-
-var s1 = "hello";
-var v1 = s1.GetHashCode();
-var h1 = v1.ToString("x");
-var s2 = "goodbye";
-var v2 = s2.GetHashCode();
-var h2 = v2.ToString("x");
 
 app.Run();

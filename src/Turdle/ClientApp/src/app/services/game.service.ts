@@ -56,7 +56,7 @@ export class GameService {
       return;
     }
 
-    console.log('Connection started');
+    console.log('Game hub connection started');
     this.hubConnection?.on('Ping', (data) => {
       this.ngZone.run(() => this.pings.push(new Date()));
     });
@@ -512,7 +512,8 @@ export interface PointSchedule {
 }
 
 export interface Room {
-  roomCodes: string;
+  createdOn : Date;
+  roomCode: string;
   players: Player[];
   adminAlias: string;
   roundNumber: number;

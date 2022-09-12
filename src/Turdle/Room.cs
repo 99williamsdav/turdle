@@ -18,6 +18,7 @@ public class Room
     private readonly WordService _wordService;
     private readonly IPointService _pointService;
     private readonly IWordAnalysisService _wordAnalyst;
+    private readonly DateTime _createdOn = DateTime.Now;
     
     private InternalRoundState _internalRoundState;
 
@@ -38,6 +39,8 @@ public class Room
     private Timer? _startTimer;
     private Timer? _guessTimer;
 
+    private readonly Func<Task> _roomSummaryUpdatedCallback;
+
     public Room(
         IHubContext<GameHub> hubContext, IHubContext<AdminHub> adminHubContext, 
         WordService wordService, 
@@ -45,7 +48,7 @@ public class Room
         ILogger<RoomManager> logger, 
         IWordAnalysisService wordAnalyst, 
         string roomCode, 
-        string adminConnectionId)
+        string adminConnectionId, Func<Task> roomSummaryUpdatedCallback)
     {
         _hubContext = hubContext;
         _adminHubContext = adminHubContext;
@@ -54,6 +57,7 @@ public class Room
         _logger = logger;
         _wordAnalyst = wordAnalyst;
         _adminConnectionId = adminConnectionId;
+        _roomSummaryUpdatedCallback = roomSummaryUpdatedCallback;
         _roomCode = roomCode;
         // TODO leave null until game has started? 
         _internalRoundState = new InternalRoundState(wordService.GetRandomWord(GameParameters.WordLength), _pointService);
@@ -63,10 +67,11 @@ public class Room
     {
         return new RoomSummary
         {
+            CreatedOn = _createdOn,
             RoomCode = _roomCode,
             RoundNumber = _previousRoundStates.Count + 1,
             Players = _playersByConnectionId.Values.Select(x => x.Mask()).ToArray(),
-            AdminAlias = _playersByConnectionId[_adminConnectionId].Alias,
+            AdminAlias = _playersByConnectionId.TryGetValue(_adminConnectionId, out var admin) ? admin.Alias : "",
             CurrentRoundStatus = _internalRoundState.Status
         };
     }
@@ -77,6 +82,7 @@ public class Room
         _previousRoundStates = new List<InternalRoundState>();
         _internalRoundState = new InternalRoundState(_wordService.GetRandomWord(GameParameters.WordLength), _pointService);
         await BroadcastRoundState(_internalRoundState, _internalRoundState.Mask());
+        await _roomSummaryUpdatedCallback();
     }
 
     public async Task<IRoundState<IPlayer<IBoard<IRow<ITile>, ITile>, IRow<ITile>, ITile>, IBoard<IRow<ITile>, ITile>, IRow<ITile>, ITile>> GetGameState()
@@ -113,6 +119,7 @@ public class Room
             maskedRoundState = _internalRoundState.Mask();
         }
         await BroadcastRoundState(_internalRoundState, maskedRoundState);
+        await _roomSummaryUpdatedCallback();
         return player;
     }
 
@@ -146,9 +153,12 @@ public class Room
             }
 
         }
-        
+
         if (registeredPlayerDisconnected)
+        {
             await BroadcastRoundState(_internalRoundState, gameState);
+            await _roomSummaryUpdatedCallback();
+        }
     }
 
     public async Task PlayerReconnected(string connectionId)
@@ -202,7 +212,9 @@ public class Room
                 
             maskedRoundState = _internalRoundState.Mask();
         }
+        
         await BroadcastRoundState(_internalRoundState, maskedRoundState, player.ConnectionId);
+        await _roomSummaryUpdatedCallback();
     }
 
     public async Task DisconnectPlayer(string alias)
@@ -223,7 +235,9 @@ public class Room
                 
             maskedRoundState = _internalRoundState.Mask();
         }
+        
         await BroadcastRoundState(_internalRoundState, maskedRoundState);
+        await _roomSummaryUpdatedCallback();
     }
 
     public async Task ToggleReady(bool ready, string connectionId)
@@ -243,7 +257,9 @@ public class Room
 
             maskedRoundState = _internalRoundState.Mask();
         }
+        
         await BroadcastRoundState(_internalRoundState, maskedRoundState);
+        await _roomSummaryUpdatedCallback();
     }
 
     // TODO check from admin connection?
@@ -284,6 +300,7 @@ public class Room
             .Concat(_tvConnections.Keys)
             .Concat(_adminConnections.Keys);
         await _hubContext.Clients.Clients(allConnections).SendAsync("StartNewGame", new Board());
+        await _roomSummaryUpdatedCallback();
     }
 
     private async Task StartRoundInternal()
@@ -303,6 +320,7 @@ public class Room
                 _guessTimer.Start();
             }
             await BroadcastRoundState(_internalRoundState, maskedRoundState);
+            await _roomSummaryUpdatedCallback();
         }
     }
 
@@ -409,6 +427,7 @@ public class Room
         return new Result<Board>(board);
     }
 
+    // TODO move into background task?
     private async Task BroadcastRoundState(InternalRoundState internalRoundState, MaskedRoundState maskedRoundState, params string[] additionalConnectionIds)
     {
         _logger.LogInformation("Broadcasting round state.");

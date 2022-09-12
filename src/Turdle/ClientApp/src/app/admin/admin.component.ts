@@ -22,8 +22,8 @@ export class AdminComponent {
 
   async ngOnInit() {
     await this.homeService.setupConnection();
-    await this.adminService.setupConnection();
     await this.homeService.initHomeData();
+    await this.adminService.setupConnection();
   }
 
   // METHODS
@@ -65,8 +65,14 @@ export class AdminComponent {
 
   // PROPERTY GETTERS
 
+  get isConnected() : boolean {
+    return this.homeService.isConnected;
+  }
   get rooms(): Room[] {
     return this.homeService.rooms;
+  }
+  get roomCode(): string {
+    return this.gameService.roomCode;
   }
   get roundState(): RoundState {
     return this.gameService.roundState;

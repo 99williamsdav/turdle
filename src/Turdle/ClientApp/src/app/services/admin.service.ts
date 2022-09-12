@@ -29,7 +29,7 @@ export class AdminService {
       return;
     }
 
-    console.log('Connection started');
+    console.log('Admin hub connection started');
     this.hubConnection?.on('Ping', (data) => {
       this.ngZone.run(() => this.pings.push(new Date()));
     });

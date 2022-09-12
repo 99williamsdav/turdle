@@ -32,11 +32,17 @@ export class HomeService {
       return;
     }
 
-    console.log('Connection started');
+    console.log('Home hub connection started');
+    this._hubConnection?.on('RoomsUpdated', (rooms: Room[]) => {
+      this.ngZone.run(() => {
+        this.rooms = rooms;
+      });
+    });
+
   }
 
   public async initHomeData(): Promise<void> {
-    this.http.get<Room[]>(this.baseUrl + 'getRooms').subscribe(async result => {
+    this.http.get<Room[]>(this.baseUrl + 'getrooms').subscribe(async result => {
       this.rooms = result;
     }, error => console.error(error));
   }

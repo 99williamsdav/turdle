@@ -13,4 +13,6 @@ public class RoomSummary
     public int RoundNumber { get; set; }
     
     public RoundStatus CurrentRoundStatus { get; set; }
+    
+    public DateTime CreatedOn { get; set; }
 }

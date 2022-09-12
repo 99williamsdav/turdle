@@ -12,8 +12,6 @@ public class GameHub : Hub
     private readonly ILogger<GameHub> _logger;
     private readonly RoomManager _roomManager;
 
-    private readonly Dictionary<string, Room> _roomConnectionCache = new Dictionary<string, Room>();
-
     public GameHub(RoomManager roomManager, ILogger<GameHub> logger)
     {
         _roomManager = roomManager;
@@ -25,12 +23,7 @@ public class GameHub : Hub
         using (LogContext.Create(_logger, Context.ConnectionId, "OnDisconnectedAsync"))
         {
             _logger.LogInformation($"OnDisconnectedAsync({exception?.Message})");
-            if (_roomConnectionCache.TryGetValue(Context.ConnectionId, out var room))
-            {
-                await room.PlayerDisconnected(Context.ConnectionId);
-            }
-            
-            _roomConnectionCache.Remove(Context.ConnectionId);
+            await _roomManager.PlayerDisconnected(Context.ConnectionId);
             await base.OnDisconnectedAsync(exception);
         }
     }
@@ -40,11 +33,7 @@ public class GameHub : Hub
         using (LogContext.Create(_logger, Context.ConnectionId, "OnConnectedAsync"))
         {
             _logger.LogInformation($"OnConnectedAsync()");
-            if (_roomConnectionCache.TryGetValue(Context.ConnectionId, out var room))
-            {
-                await room.PlayerReconnected(Context.ConnectionId);
-            }
-            
+            await _roomManager.PlayerReconnected(Context.ConnectionId);
             await base.OnConnectedAsync();
         }
     }
@@ -66,9 +55,8 @@ public class GameHub : Hub
             _logger.LogInformation($"RegisterAlias({roomCode}, {alias}, {feature?.RemoteIpAddress})");
             try
             {
-                var room = _roomManager.GetRoom(roomCode);
+                var room = _roomManager.GetRoom(roomCode, Context.ConnectionId);
                 var player = await room.RegisterAlias(alias, Context.ConnectionId, feature.RemoteIpAddress.ToString());
-                _roomConnectionCache.Add(Context.ConnectionId, room);
                 return new Result<Player>(player);
             }
             catch (AliasAlreadyTakenException e)
