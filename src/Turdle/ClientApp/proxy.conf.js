@@ -12,13 +12,20 @@ const PROXY_CONFIG = [
       "/getpreviousalias",
       "/getpointschedule",
       "/getfakereadyboard",
-      "/gameHub",
-      "/adminHub",
-      "/homeHub",
       "/img"
    ],
     target: target,
     secure: false
+  },
+  {
+    context: [
+      "/gameHub",
+      "/adminHub",
+      "/homeHub"
+    ],
+    target: target,
+    secure: false,
+    ws: true
   }
 ]
 

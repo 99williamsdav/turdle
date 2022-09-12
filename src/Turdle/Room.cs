@@ -56,6 +56,7 @@ public class Room
         _pointService = pointService;
         _logger = logger;
         _wordAnalyst = wordAnalyst;
+        // not actually the game hub connection id
         _adminConnectionId = adminConnectionId;
         _roomSummaryUpdatedCallback = roomSummaryUpdatedCallback;
         _roomCode = roomCode;
