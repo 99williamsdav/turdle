@@ -85,7 +85,7 @@ public class WordService
         using (StreamReader reader = new StreamReader(stream))
         {
             string jsonFile = reader.ReadToEnd();
-            _possibleAnswers[length] = JsonConvert.DeserializeObject<string[]>(jsonFile);
+            _possibleAnswers[length] = JsonConvert.DeserializeObject<string[]>(jsonFile).Distinct().ToArray();
             var letterCounts = 
                 jsonFile.GroupBy(x => x)
                     .OrderBy(x => x.Key)
@@ -97,7 +97,7 @@ public class WordService
         using (StreamReader reader = new StreamReader(stream))
         {
             string jsonFile = reader.ReadToEnd();
-            _naughtyWords[length] = JsonConvert.DeserializeObject<string[]>(jsonFile);
+            _naughtyWords[length] = JsonConvert.DeserializeObject<string[]>(jsonFile).Distinct().ToArray();
         }
 
         if (GameParameters.UseNaughtyWordList)
