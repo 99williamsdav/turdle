@@ -71,7 +71,7 @@ public class Room
             CreatedOn = _createdOn,
             RoomCode = _roomCode,
             RoundNumber = _previousRoundStates.Count + 1,
-            Players = _playersByConnectionId.Values.Select(x => x.Mask()).ToArray(),
+            Players = _internalRoundState.Players.Select(x => x.Mask()).ToArray(),
             AdminAlias = _playersByConnectionId.TryGetValue(_adminConnectionId, out var admin) ? admin.Alias : "",
             CurrentRoundStatus = _internalRoundState.Status
         };
