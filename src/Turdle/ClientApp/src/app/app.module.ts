@@ -7,7 +7,6 @@ import { RouterModule } from '@angular/router';
 import { AppComponent } from './app.component';
 import { NavMenuComponent } from './nav-menu/nav-menu.component';
 import { HomeComponent } from './home/home.component';
-import { FetchDataComponent } from './fetch-data/fetch-data.component';
 import {GameComponent, NotAliasPipe} from "./game/game.component";
 import { GameService } from './services/game.service';
 import { GameBoardComponent } from "./game-board/game-board.component";
@@ -32,7 +31,6 @@ import {ToastsContainer} from "./toast/toasts-container.component";
     AppComponent,
     NavMenuComponent,
     HomeComponent,
-    FetchDataComponent,
     GameComponent,
     AdminComponent,
     GameBoardComponent,
@@ -53,7 +51,6 @@ import {ToastsContainer} from "./toast/toasts-container.component";
       FormsModule,
       RouterModule.forRoot([
         {path: '', component: HomeComponent, pathMatch: 'full'},
-        {path: 'fetch-data', component: FetchDataComponent},
         {path: 'play/:code', component: GameComponent},
         {path: 'onlydavidallowed', component: AdminComponent},
         {path: 'tv', component: TvComponent},
