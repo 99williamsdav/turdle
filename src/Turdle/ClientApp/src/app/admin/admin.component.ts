@@ -6,7 +6,7 @@ import {HomeService} from "../services/home.service";
 @Component({
   selector: 'admin',
   templateUrl: './admin.component.html',
-  styleUrls: []
+  styleUrls: ['./admin.component.css']
 })
 export class AdminComponent {
   public guessTimeLimitSeconds: number = 30;
@@ -34,17 +34,18 @@ export class AdminComponent {
     }
 
     await this.gameService.setupConnection(roomCode);
+    await this.gameService.initGameData();
     await this.gameService.registerAdminConnection();
   }
 
   async kickPlayer(alias: string) {
-    await this.adminService.kickPlayer(alias);
+    await this.adminService.kickPlayer(this.roomCode, alias);
   }
   async disconnectPlayer(alias: string) {
-    await this.adminService.disconnectPlayer(alias);
+    await this.adminService.disconnectPlayer(this.roomCode, alias);
   }
   async hardReset() {
-    await this.adminService.hardReset();
+    await this.adminService.hardReset(this.roomCode);
   }
   public async startGame(): Promise<void> {
     await this.gameService.startGame();

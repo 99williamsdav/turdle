@@ -43,6 +43,11 @@ export class GameService {
   public async setupConnection(roomCode: string): Promise<void> {
     this.roomCode = roomCode;
 
+    if (this.isConnected) {
+      this.roundState = { status: '', players: [], startTime: null, roundNumber: 0, guessDeadlines: null, currentExpectedGuessCount: 0, nextGuessDeadline: null, guessTimeLimitMs: null, correctAnswer: null, wordLength: 0, maxGuesses: 0 };
+      return;
+    }
+
     console.log('Initialising game hub connection.');
     let hubConnection = new signalR.HubConnectionBuilder()
       .withUrl(this.baseUrl + 'gameHub')

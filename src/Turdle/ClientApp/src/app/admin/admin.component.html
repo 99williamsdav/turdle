@@ -15,16 +15,18 @@
           <th>Creator</th>
           <th>Round</th>
           <th>Current Status</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let room of rooms" (click)="selectRoom(room.roomCode)">
+        <tr *ngFor="let room of rooms" (click)="selectRoom(room.roomCode)" [ngClass]="{ 'selected': roomCode == room.roomCode }">
           <th>{{ room.roomCode }}</th>
           <td>{{ room.createdOn | date:'dd/MM HH:mm' }}</td>
           <td>{{ room.players.length }}</td>
           <td>{{ room.adminAlias }}</td>
           <td>{{ room.roundNumber }}</td>
           <td>{{ room.currentRoundStatus }}</td>
+          <td><a class="btn btn-outline-success btn-sm" [routerLink]="['/play', room.roomCode]">Join</a></td>
         </tr>
       </tbody>
     </table>
@@ -32,7 +34,7 @@
   </div>
 </div>
 
-<div class="row" *ngIf="roomCode">
+<div class="row" *ngIf="roomCode && roundState.status">
   <div class="col-md-4">
     <table class="table">
       <tr>

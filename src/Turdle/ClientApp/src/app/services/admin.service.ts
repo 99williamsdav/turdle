@@ -35,34 +35,34 @@ export class AdminService {
     });
   }
 
-  public async kickPlayer(alias: string): Promise<void> {
+  public async kickPlayer(roomCode: string, alias: string): Promise<void> {
     if (this.hubConnection == null)
       return;
 
     try {
-      await this.hubConnection.invoke('KickPlayer', alias);
+      await this.hubConnection.invoke('KickPlayer', roomCode, alias);
     } catch (e) {
       console.log('Error kicking player: ' + e);
     }
   }
 
-  public async disconnectPlayer(alias: string): Promise<void> {
+  public async disconnectPlayer(roomCode: string, alias: string): Promise<void> {
     if (this.hubConnection == null)
       return;
 
     try {
-      await this.hubConnection.invoke('DisconnectPlayer', alias);
+      await this.hubConnection.invoke('DisconnectPlayer', roomCode, alias);
     } catch (e) {
       console.log('Error disconnecting player: ' + e);
     }
   }
 
-  public async hardReset(): Promise<void> {
+  public async hardReset(roomCode: string): Promise<void> {
     if (this.hubConnection == null)
       return;
 
     try {
-      await this.hubConnection.invoke('HardReset');
+      await this.hubConnection.invoke('HardReset', roomCode);
     } catch (e) {
       console.log('Error doing hard reset: ' + e);
     }
