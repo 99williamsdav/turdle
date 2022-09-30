@@ -26,6 +26,7 @@ export class AdminComponent {
     await this.adminService.setupConnection();
   }
 
+
   // METHODS
 
   async selectRoom(roomCode: string) {
@@ -55,14 +56,15 @@ export class AdminComponent {
       await this.adminService.updatePointSchedule(this.gameService.pointSchedule);
   }
   public async updateGuessTimeLimit(): Promise<void> {
-    await this.adminService.updateGuessTimeLimit(this.guessTimeLimitSeconds);
+    await this.gameService.updateGuessTimeLimit(this.guessTimeLimitSeconds);
   }
   public async updateWordLength(): Promise<void> {
-    await this.adminService.updateWordLength(this.wordLength);
+    await this.gameService.updateWordLength(this.wordLength);
   }
   public async updateMaxGuesses(): Promise<void> {
-    await this.adminService.updateMaxGuesses(this.maxGuesses);
+    await this.gameService.updateMaxGuesses(this.maxGuesses);
   }
+
 
   // PROPERTY GETTERS
 

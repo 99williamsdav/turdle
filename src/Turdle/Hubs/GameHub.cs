@@ -156,4 +156,31 @@ public class GameHub : Hub
             return _roomManager.GetRoom(roomCode).GetPlayerBoard(Context.ConnectionId);
         }
     }
+
+    public async Task UpdateGuessTimeLimit(string roomCode, int seconds)
+    {
+        using (LogContext.Create(_logger, Context.ConnectionId, "UpdateGuessTimeLimit"))
+        {
+            await _roomManager.GetRoom(roomCode)
+                .UpdateGameParameters(Context.ConnectionId, param => param.GuessTimeLimitSeconds = seconds);
+        }
+    }
+
+    public async Task UpdateWordLength(string roomCode, int length)
+    {
+        using (LogContext.Create(_logger, Context.ConnectionId, "UpdateWordLength"))
+        {
+            await _roomManager.GetRoom(roomCode)
+                .UpdateGameParameters(Context.ConnectionId, param => param.WordLength = length);
+        }
+    }
+
+    public async Task UpdateMaxGuesses(string roomCode, int maxGuesses)
+    {
+        using (LogContext.Create(_logger, Context.ConnectionId, "UpdateMaxGuesses"))
+        {
+            await _roomManager.GetRoom(roomCode)
+                .UpdateGameParameters(Context.ConnectionId, param => param.MaxGuesses = maxGuesses);
+        }
+    }
 }

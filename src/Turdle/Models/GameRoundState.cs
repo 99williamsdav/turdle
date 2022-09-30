@@ -68,15 +68,16 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
 
     public void SetBoard(string alias, Board board) => BoardsByAlias[alias] = board;
 
-    public InternalRoundState(string correctAnswer, IPointService pointService)
+    public InternalRoundState(string correctAnswer, IPointService pointService, GameParameters gameParameters)
     {
         CorrectAnswer = correctAnswer;
         _pointService = pointService;
         RoundNumber = 1;
-        MaxGuesses = GameParameters.MaxGuesses;
+        MaxGuesses = gameParameters.MaxGuesses;
+        GuessTimeLimit = TimeSpan.FromSeconds(gameParameters.GuessTimeLimitSeconds);
     }
 
-    public InternalRoundState(string correctAnswer, IEnumerable<Player> previousPlayers, int roundNumber, IPointService pointService)
+    public InternalRoundState(string correctAnswer, IEnumerable<Player> previousPlayers, int roundNumber, IPointService pointService, GameParameters gameParameters)
     {
         CorrectAnswer = correctAnswer;
         RoundNumber = roundNumber;
@@ -85,7 +86,8 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
         Players = _players.ToArray();
         Status = RoundStatus.Ready;
         RecalculateRanking();
-        MaxGuesses = GameParameters.MaxGuesses;
+        MaxGuesses = gameParameters.MaxGuesses;
+        GuessTimeLimit = TimeSpan.FromSeconds(gameParameters.GuessTimeLimitSeconds);
     }
 
     public Player RemovePlayer(string alias)
@@ -263,7 +265,6 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
 
         Status = RoundStatus.Starting;
         StartTime = startTime;
-        GuessTimeLimit = TimeSpan.FromSeconds(GameParameters.GuessTimeLimitSeconds);
         EndTime = startTime + GuessTimeLimit * MaxGuesses;
         NextGuessDeadline = startTime + GuessTimeLimit.Value;
         GuessDeadlines = Enumerable.Range(1, MaxGuesses).Select(i => startTime + (GuessTimeLimit.Value * i)).ToArray();

@@ -402,6 +402,42 @@ export class GameService {
     }
   }
 
+
+  // ADMIN METHODS
+
+  public async updateGuessTimeLimit(seconds: number): Promise<void> {
+    if (this.hubConnection == null)
+      return;
+    try {
+      await this.hubConnection.invoke('UpdateGuessTimeLimit', this.roomCode, seconds);
+    } catch (e) {
+      console.log('Error updating guess time limit: ' + e);
+    }
+  }
+
+  public async updateWordLength(length: number): Promise<void> {
+    if (this.hubConnection == null)
+      return;
+    try {
+      await this.hubConnection.invoke('UpdateWordLength', this.roomCode, length);
+    } catch (e) {
+      console.log('Error updating word length: ' + e);
+    }
+  }
+
+  public async updateMaxGuesses(maxGuesses: number): Promise<void> {
+    if (this.hubConnection == null)
+      return;
+    try {
+      await this.hubConnection.invoke('UpdateMaxGuesses', this.roomCode, maxGuesses);
+    } catch (e) {
+      console.log('Error updating max guesses: ' + e);
+    }
+  }
+
+
+  // PROPERTY GETTERS
+
   public get isConnected() : boolean {
     return this.hubConnection != null;
   }

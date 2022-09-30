@@ -52,17 +52,17 @@ public class AdminHub : Hub
 
     public async Task UpdateGuessTimeLimit(int seconds)
     {
-        GameParameters.GuessTimeLimitSeconds = seconds;
+        GameParameters.Default.GuessTimeLimitSeconds = seconds;
     }
 
     public async Task UpdateWordLength(int length)
     {
-        GameParameters.WordLength = length;
+        GameParameters.Default.WordLength = length;
     }
 
     public async Task UpdateMaxGuesses(int maxGuesses)
     {
-        GameParameters.MaxGuesses = maxGuesses;
+        GameParameters.Default.MaxGuesses = maxGuesses;
     }
 
     public async Task PingAll()

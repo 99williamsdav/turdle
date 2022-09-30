@@ -100,10 +100,7 @@ public class WordService
             _naughtyWords[length] = JsonConvert.DeserializeObject<string[]>(jsonFile).Distinct().ToArray();
         }
 
-        if (GameParameters.UseNaughtyWordList)
-        {
-            _possibleAnswers[length] = _possibleAnswers[length].Concat(_naughtyWords[length]).Concat(_naughtyWords[length]).ToArray();
-        }
+        _possibleAnswers[length] = _possibleAnswers[length].Concat(_naughtyWords[length]).Concat(_naughtyWords[length]).ToArray();
         
         var dictionaryFilename = $"Turdle.Resources._{length}_Dictionary.json";
         string[] dictionary;

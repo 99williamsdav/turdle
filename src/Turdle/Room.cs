@@ -19,8 +19,9 @@ public class Room
     private readonly IPointService _pointService;
     private readonly IWordAnalysisService _wordAnalyst;
     private readonly DateTime _createdOn = DateTime.Now;
-    
+
     private InternalRoundState _internalRoundState;
+    private GameParameters _gameParameters;
 
     private List<InternalRoundState> _previousRoundStates = new List<InternalRoundState>();
 
@@ -58,8 +59,9 @@ public class Room
         _wordAnalyst = wordAnalyst;
         _roomSummaryUpdatedCallback = roomSummaryUpdatedCallback;
         _roomCode = roomCode;
+        _gameParameters = GameParameters.GetDefault();
         // TODO leave null until game has started? 
-        _internalRoundState = new InternalRoundState(wordService.GetRandomWord(GameParameters.WordLength), _pointService);
+        _internalRoundState = new InternalRoundState(wordService.GetRandomWord(_gameParameters.WordLength), _pointService, _gameParameters);
     }
 
     public RoomSummary ToSummary()
@@ -81,7 +83,8 @@ public class Room
     {
         _playersByConnectionId.Clear();
         _previousRoundStates = new List<InternalRoundState>();
-        _internalRoundState = new InternalRoundState(_wordService.GetRandomWord(GameParameters.WordLength), _pointService);
+        _gameParameters = GameParameters.GetDefault();
+        _internalRoundState = new InternalRoundState(_wordService.GetRandomWord(_gameParameters.WordLength), _pointService, _gameParameters);
         await BroadcastRoundState(_internalRoundState, _internalRoundState.Mask());
         await _roomSummaryUpdatedCallback();
     }
@@ -284,8 +287,8 @@ public class Room
             {
                 _previousRoundStates.Add(_internalRoundState);
                 // TODO remove any players no longer connected?
-                _internalRoundState = new InternalRoundState(_wordService.GetRandomWord(GameParameters.WordLength),
-                    _internalRoundState.Players, _internalRoundState.RoundNumber + 1, _pointService);
+                _internalRoundState = new InternalRoundState(_wordService.GetRandomWord(_gameParameters.WordLength),
+                    _internalRoundState.Players, _internalRoundState.RoundNumber + 1, _pointService, _gameParameters.Clone());
             }
 
             _internalRoundState.StartNew(DateTime.Now.AddSeconds(StartCountdownSeconds));
@@ -476,5 +479,15 @@ public class Room
                 return Task.FromResult(new Board());
             }
         }
+    }
+
+    public Task UpdateGameParameters(string connectionId, Action<GameParameters> callback)
+    {
+        if (connectionId != _adminConnectionId && !_adminConnections.ContainsKey(connectionId))
+            throw new InvalidOperationException("Connection does not have permission to change parameters.");
+
+        callback(_gameParameters);
+
+        return Task.CompletedTask;
     }
 }
