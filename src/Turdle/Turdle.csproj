@@ -64,6 +64,10 @@
       <EmbeddedResource Include="Resources\_5_PossibleAnswers.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </EmbeddedResource>
+        <Content Remove="Resources\_5_PossibleAnswers.turdle.json" />
+        <EmbeddedResource Include="Resources\_5_PossibleAnswers.turdle.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </EmbeddedResource>
       <Content Remove="Resources\_4_Dictionary.json" />
       <EmbeddedResource Include="Resources\_4_Dictionary.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
