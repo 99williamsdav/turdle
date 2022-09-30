@@ -31,7 +31,7 @@ public class Room
     private readonly ConcurrentDictionary<string, object> _adminConnections = new ConcurrentDictionary<string, object>();
     private readonly ConcurrentDictionary<string, object> _tvConnections = new ConcurrentDictionary<string, object>();
 
-    private string _adminConnectionId;
+    private string? _adminConnectionId;
     private readonly string _roomCode;
 
     private readonly object _stateLock = new object();
@@ -56,8 +56,6 @@ public class Room
         _pointService = pointService;
         _logger = logger;
         _wordAnalyst = wordAnalyst;
-        // not actually the game hub connection id
-        _adminConnectionId = adminConnectionId;
         _roomSummaryUpdatedCallback = roomSummaryUpdatedCallback;
         _roomCode = roomCode;
         // TODO leave null until game has started? 
@@ -72,7 +70,9 @@ public class Room
             RoomCode = _roomCode,
             RoundNumber = _previousRoundStates.Count + 1,
             Players = _internalRoundState.Players.Select(x => x.Mask()).ToArray(),
-            AdminAlias = _playersByConnectionId.TryGetValue(_adminConnectionId, out var admin) ? admin.Alias : "",
+            AdminAlias = _adminConnectionId != null && _playersByConnectionId.TryGetValue(_adminConnectionId, out var admin) 
+                ? admin.Alias 
+                : "",
             CurrentRoundStatus = _internalRoundState.Status
         };
     }
@@ -116,6 +116,7 @@ public class Room
             _playersByConnectionId.Remove(connectionId, out _);
             player = _internalRoundState.RegisterPlayer(alias, connectionId, ipAddress);
             _playersByConnectionId.TryAdd(connectionId, player);
+            _adminConnectionId ??= connectionId;
 
             maskedRoundState = _internalRoundState.Mask();
         }
@@ -203,6 +204,9 @@ public class Room
             {
                 // TODO call JS disconnect function
             }
+
+            if (_adminConnectionId == player.ConnectionId)
+                _adminConnectionId = _playersByConnectionId.Count > 0 ? _playersByConnectionId.First().Key : null;
             
             if (_internalRoundState.Status == RoundStatus.Playing &&
                 _internalRoundState.Players.All(x => x.Board.Status is BoardStatus.Solved or BoardStatus.Failed))
