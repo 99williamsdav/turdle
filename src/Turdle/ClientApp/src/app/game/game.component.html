@@ -105,7 +105,9 @@
               {{ currentPlayer?.board?.isJointRank ? '=' : '' }}{{ currentPlayer?.board?.rank }}<sup>{{ currentPlayer?.board?.rank | ordinal:false }}</sup>
             </span>
           </h2>
-          <h2>Go {{ currentPlayer?.alias }}!</h2>
+          <h2 *ngIf="roundState.status != 'Finished'">Go {{ currentPlayer?.alias }}!</h2>
+          <!-- TODO Limit this to admin only-->
+          <h2 *ngIf="roundState.status == 'Finished'"><a class="btn btn-outline-success btn-lg" (click)="startGame()">Start Round</a></h2>
           <h2>
             <span class="badge alert-info">{{ currentPlayer?.board?.points }}pts</span>
           </h2>
