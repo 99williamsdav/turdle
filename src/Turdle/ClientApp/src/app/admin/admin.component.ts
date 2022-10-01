@@ -2,6 +2,7 @@ import {Component, HostListener, Inject} from '@angular/core';
 import {Board, GameService, RoundState, Player, Row, PointSchedule, Room} from "../services/game.service";
 import {AdminService} from "../services/admin.service";
 import {HomeService} from "../services/home.service";
+import { ToastService } from '../toast/toast-service';
 
 @Component({
   selector: 'admin',
@@ -10,13 +11,14 @@ import {HomeService} from "../services/home.service";
 })
 export class AdminComponent {
   public guessTimeLimitSeconds: number = 30;
-  public wordLength: number = 5;
+  public answerListType: string = 'FiveLetterEasy';
   public maxGuesses: number = 6;
 
   constructor(
     private gameService: GameService,
     private adminService: AdminService,
-    private homeService: HomeService) {
+    private homeService: HomeService,
+    private toastService: ToastService) {
     console.log('AdminComponent ctor');
   }
 
@@ -56,13 +58,25 @@ export class AdminComponent {
       await this.adminService.updatePointSchedule(this.gameService.pointSchedule);
   }
   public async updateGuessTimeLimit(): Promise<void> {
-    await this.gameService.updateGuessTimeLimit(this.guessTimeLimitSeconds);
+    try {
+      await this.gameService.updateGuessTimeLimit(this.guessTimeLimitSeconds);
+    } catch (e: any) {
+      this.toastService.default(e.message);
+    }
   }
-  public async updateWordLength(): Promise<void> {
-    await this.gameService.updateWordLength(this.wordLength);
+  public async updateAnswerList(): Promise<void> {
+    try {
+      await this.gameService.updateAnswerList(this.answerListType);
+    } catch (e: any) {
+      this.toastService.default(e.message);
+    }
   }
   public async updateMaxGuesses(): Promise<void> {
-    await this.gameService.updateMaxGuesses(this.maxGuesses);
+    try {
+      await this.gameService.updateMaxGuesses(this.maxGuesses);
+    } catch (e: any) {
+      this.toastService.default(e.message);
+    }
   }
 
 

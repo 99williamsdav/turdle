@@ -415,11 +415,11 @@ export class GameService {
     }
   }
 
-  public async updateWordLength(length: number): Promise<void> {
+  public async updateAnswerList(answerListType: string): Promise<void> {
     if (this.hubConnection == null)
       return;
     try {
-      await this.hubConnection.invoke('UpdateWordLength', this.roomCode, length);
+      await this.hubConnection.invoke('UpdateAnswerList', this.roomCode, answerListType);
     } catch (e) {
       console.log('Error updating word length: ' + e);
     }

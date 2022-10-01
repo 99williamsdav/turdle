@@ -61,7 +61,7 @@ public class Room
         _roomCode = roomCode;
         _gameParameters = GameParameters.GetDefault();
         // TODO leave null until game has started? 
-        _internalRoundState = new InternalRoundState(wordService.GetRandomWord(_gameParameters.WordLength), _pointService, _gameParameters);
+        _internalRoundState = new InternalRoundState(wordService.GetRandomWord(_gameParameters.AnswerList), _pointService, _gameParameters);
     }
 
     public RoomSummary ToSummary()
@@ -84,7 +84,7 @@ public class Room
         _playersByConnectionId.Clear();
         _previousRoundStates = new List<InternalRoundState>();
         _gameParameters = GameParameters.GetDefault();
-        _internalRoundState = new InternalRoundState(_wordService.GetRandomWord(_gameParameters.WordLength), _pointService, _gameParameters);
+        _internalRoundState = new InternalRoundState(_wordService.GetRandomWord(_gameParameters.AnswerList), _pointService, _gameParameters);
         await BroadcastRoundState(_internalRoundState, _internalRoundState.Mask());
         await _roomSummaryUpdatedCallback();
     }
@@ -287,7 +287,7 @@ public class Room
             {
                 _previousRoundStates.Add(_internalRoundState);
                 // TODO remove any players no longer connected?
-                _internalRoundState = new InternalRoundState(_wordService.GetRandomWord(_gameParameters.WordLength),
+                _internalRoundState = new InternalRoundState(_wordService.GetRandomWord(_gameParameters.AnswerList),
                     _internalRoundState.Players, _internalRoundState.RoundNumber + 1, _pointService, _gameParameters.Clone());
             }
 

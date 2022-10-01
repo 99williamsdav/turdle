@@ -19,9 +19,19 @@ public class WordService
         PopulateWords(6);
     }
 
-    public string GetRandomWord(int length)
+    public string GetRandomWord(AnswerListType answerListType)
     {
-        return _possibleAnswers[length].PickRandom();
+        var answerList = answerListType switch
+        {
+            AnswerListType.FourLetter => _possibleAnswers[4],
+            AnswerListType.FiveLetterEasy => _possibleAnswers[5],
+            AnswerListType.FiveLetterWordle => throw new NotImplementedException(),
+            AnswerListType.SixLetter => _possibleAnswers[6],
+            AnswerListType.Random => 
+                _possibleAnswers[4].Concat(_possibleAnswers[5]).Concat(_possibleAnswers[6]).ToArray(),
+        };
+
+        return answerList.PickRandom();
     }
 
     public bool IsWordAccepted(string word)
@@ -127,4 +137,13 @@ public class WordService
 
         _acceptedWords[length] = new HashSet<string>(dictionary.Concat(_possibleAnswers[length]).Concat(removedAnswers).Concat(_naughtyWords[length]));
     }
+}
+
+public enum AnswerListType
+{
+    FourLetter,
+    FiveLetterEasy,
+    FiveLetterWordle,
+    SixLetter,
+    Random
 }

@@ -7,10 +7,11 @@ public class GameParameters
     public const bool ShowKnownOpponentTiles = true;
     public const bool ShowKnownOpponentWords = false;
 
-    public int WordLength { get; set; } = 5;
     public int MaxGuesses { get; set; } = 6;
 
     public int GuessTimeLimitSeconds { get; set; } = 30;
+
+    public AnswerListType AnswerList { get; set; } = AnswerListType.FiveLetterEasy;
 
     // TODO implement
     public bool UseNaughtyWordList { get; set; } = true;

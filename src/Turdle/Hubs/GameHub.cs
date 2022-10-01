@@ -166,12 +166,12 @@ public class GameHub : Hub
         }
     }
 
-    public async Task UpdateWordLength(string roomCode, int length)
+    public async Task UpdateAnswerList(string roomCode, AnswerListType listType)
     {
-        using (LogContext.Create(_logger, Context.ConnectionId, "UpdateWordLength"))
+        using (LogContext.Create(_logger, Context.ConnectionId, "UpdateAnswerList"))
         {
             await _roomManager.GetRoom(roomCode)
-                .UpdateGameParameters(Context.ConnectionId, param => param.WordLength = length);
+                .UpdateGameParameters(Context.ConnectionId, param => param.AnswerList = listType);
         }
     }
 

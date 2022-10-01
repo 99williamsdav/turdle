@@ -55,9 +55,9 @@ public class AdminHub : Hub
         GameParameters.Default.GuessTimeLimitSeconds = seconds;
     }
 
-    public async Task UpdateWordLength(int length)
+    public async Task UpdateAnswerList(AnswerListType listType)
     {
-        GameParameters.Default.WordLength = length;
+        GameParameters.Default.AnswerList = listType;
     }
 
     public async Task UpdateMaxGuesses(int maxGuesses)

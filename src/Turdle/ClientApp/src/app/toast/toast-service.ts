@@ -7,6 +7,9 @@ export class ToastService {
   default(textOrTpl: string) {
     this.toasts.push({ textOrTpl, classname: 'bg-neon text-light', delay: 4000 });
   }
+  error(textOrTpl: string) {
+    this.toasts.push({ textOrTpl, classname: 'bg-danger text-light', delay: 4000 });
+  }
 
   show(textOrTpl: string | TemplateRef<any>, options: any = {}) {
     this.toasts.push({ textOrTpl, ...options });
