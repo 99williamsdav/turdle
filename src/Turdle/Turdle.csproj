@@ -35,6 +35,7 @@
 
     <ItemGroup>
       <Content Remove="Resources\PossibleAnswers.json" />
+      <Content Remove="Resources\_5_PossibleWordleAnswers.json" />
       <EmbeddedResource Include="Resources\_4_NaughtyAnswers.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </EmbeddedResource>
@@ -64,8 +65,7 @@
       <EmbeddedResource Include="Resources\_5_PossibleAnswers.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </EmbeddedResource>
-        <Content Remove="Resources\_5_PossibleAnswers.turdle.json" />
-        <EmbeddedResource Include="Resources\_5_PossibleAnswers.turdle.json">
+        <EmbeddedResource Include="Resources\_5_PossibleWordleAnswers.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </EmbeddedResource>
       <Content Remove="Resources\_4_Dictionary.json" />

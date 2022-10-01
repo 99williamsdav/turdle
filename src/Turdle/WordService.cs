@@ -11,12 +11,14 @@ public class WordService
     private readonly IDictionary<int, string[]> _possibleAnswers = new Dictionary<int, string[]>();
     private readonly IDictionary<int, string[]> _naughtyWords = new Dictionary<int, string[]>();
     private readonly IDictionary<int, HashSet<string>> _acceptedWords = new Dictionary<int, HashSet<string>>();
+    private string[] _possibleWordleAnswers = new string[0];
 
     public WordService()
     {
         PopulateWords(4);
         PopulateWords(5);
         PopulateWords(6);
+        PopulateWordleAnswers();
     }
 
     public string GetRandomWord(AnswerListType answerListType)
@@ -25,10 +27,10 @@ public class WordService
         {
             AnswerListType.FourLetter => _possibleAnswers[4],
             AnswerListType.FiveLetterEasy => _possibleAnswers[5],
-            AnswerListType.FiveLetterWordle => throw new NotImplementedException(),
+            AnswerListType.FiveLetterWordle => _possibleWordleAnswers,
             AnswerListType.SixLetter => _possibleAnswers[6],
             AnswerListType.Random => 
-                _possibleAnswers[4].Concat(_possibleAnswers[5]).Concat(_possibleAnswers[6]).ToArray(),
+                _possibleAnswers[4].Concat(_possibleAnswers[5]).Concat(_possibleAnswers[6]).Concat(_possibleWordleAnswers).ToArray(),
         };
 
         return answerList.PickRandom();
@@ -136,6 +138,19 @@ public class WordService
         }
 
         _acceptedWords[length] = new HashSet<string>(dictionary.Concat(_possibleAnswers[length]).Concat(removedAnswers).Concat(_naughtyWords[length]));
+    }
+
+    private void PopulateWordleAnswers()
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+
+        var answerListFilename = $"Turdle.Resources._5_PossibleWordleAnswers.json";
+        using (Stream stream = assembly.GetManifestResourceStream(answerListFilename))
+        using (StreamReader reader = new StreamReader(stream))
+        {
+            string jsonFile = reader.ReadToEnd();
+            _possibleWordleAnswers = JsonConvert.DeserializeObject<string[]>(jsonFile).Distinct().ToArray();
+        }
     }
 }
 
