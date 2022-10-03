@@ -144,18 +144,18 @@
     <div class="row">
       <div class="col-6">
         <table class="table">
-          <tr>
+          <tr *ngIf="gameParams">
             <th>Guess Time Limit (seconds)</th>
-            <td><input class="form-control" type="number" [(ngModel)]="guessTimeLimitSeconds"></td>
+            <td><input class="form-control" type="number" [(ngModel)]="gameParams.guessTimeLimitSeconds"></td>
             <td><button type="button" class="btn btn-success" (click)="updateGuessTimeLimit()">Update</button></td>
           </tr>
-          <tr>
+          <tr *ngIf="gameParams">
             <th>Answer List</th>
             <td>
               <select name="answerListType"
                       id="answerListType"
                       class="form-control"
-                      [(ngModel)]="answerListType">
+                      [(ngModel)]="gameParams.answerList">
                 <option [value]="'FourLetter'">4</option>
                 <option [value]="'FiveLetterEasy'">5 (Generated)</option>
                 <option [value]="'FiveLetterWordle'">5 (Wordle)</option>
@@ -166,9 +166,9 @@
             </td>
             <td><button type="button" class="btn btn-success" (click)="updateAnswerList()">Update</button></td>
           </tr>
-          <tr>
+          <tr *ngIf="gameParams">
             <th>Max Guesses</th>
-            <td><input class="form-control" type="number" [(ngModel)]="maxGuesses"></td>
+            <td><input class="form-control" type="number" [(ngModel)]="gameParams.maxGuesses"></td>
             <td><button type="button" class="btn btn-success" (click)="updateMaxGuesses()">Update</button></td>
           </tr>
         </table>

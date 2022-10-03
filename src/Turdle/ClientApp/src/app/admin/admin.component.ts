@@ -1,5 +1,5 @@
 import {Component, HostListener, Inject} from '@angular/core';
-import {Board, GameService, RoundState, Player, Row, PointSchedule, Room} from "../services/game.service";
+import {Board, GameService, RoundState, Player, Row, PointSchedule, Room, GameParameters} from "../services/game.service";
 import {AdminService} from "../services/admin.service";
 import {HomeService} from "../services/home.service";
 import { ToastService } from '../toast/toast-service';
@@ -59,21 +59,21 @@ export class AdminComponent {
   }
   public async updateGuessTimeLimit(): Promise<void> {
     try {
-      await this.gameService.updateGuessTimeLimit(this.guessTimeLimitSeconds);
+      await this.gameService.updateGuessTimeLimit(this.gameParams!.guessTimeLimitSeconds);
     } catch (e: any) {
       this.toastService.default(e.message);
     }
   }
   public async updateAnswerList(): Promise<void> {
     try {
-      await this.gameService.updateAnswerList(this.answerListType);
+      await this.gameService.updateAnswerList(this.gameParams!.answerList);
     } catch (e: any) {
       this.toastService.default(e.message);
     }
   }
   public async updateMaxGuesses(): Promise<void> {
     try {
-      await this.gameService.updateMaxGuesses(this.maxGuesses);
+      await this.gameService.updateMaxGuesses(this.gameParams!.maxGuesses);
     } catch (e: any) {
       this.toastService.default(e.message);
     }
@@ -93,6 +93,9 @@ export class AdminComponent {
   }
   get roundState(): RoundState {
     return this.gameService.roundState;
+  }
+  get gameParams(): GameParameters | null {
+    return this.gameService.gameParams;
   }
   get pointSchedule(): PointSchedule | null {
     return this.gameService.pointSchedule;

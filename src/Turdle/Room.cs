@@ -99,6 +99,8 @@ public class Room
         }
     }
 
+    public Task<GameParameters> GetGameParameters() => Task.FromResult(this._gameParameters);
+
     public async Task<AliasInfo.GameStatus> GetAliasStatus(string alias)
     {
         var player = _internalRoundState.Players.SingleOrDefault(x => x.Alias == alias);
@@ -466,6 +468,18 @@ public class Room
         _logger.LogInformation($"Finished broadcasting round state ({(DateTime.Now - startTime).TotalMilliseconds:N1}ms).");
     }
 
+    private async Task BroadcastParameters()
+    {
+        _logger.LogInformation("Broadcasting parameters.");
+        var startTime = DateTime.Now;
+        var allConnections = _internalRoundState.Players.Select(x => x.ConnectionId)
+            .Concat(_tvConnections.Keys)
+            .Concat(_adminConnections.Keys);
+        await _hubContext.Clients.Clients(allConnections).SendAsync("GameParametersUpdated", _gameParameters);
+
+        _logger.LogInformation($"Finished broadcasting parameters ({(DateTime.Now - startTime).TotalMilliseconds:N1}ms).");
+    }
+
     public Task<Board> GetPlayerBoard(string connectionId)
     {
         lock (_stateLock)
@@ -481,13 +495,13 @@ public class Room
         }
     }
 
-    public Task UpdateGameParameters(string connectionId, Action<GameParameters> callback)
+    public async Task UpdateGameParameters(string connectionId, Action<GameParameters> callback)
     {
         if (connectionId != _adminConnectionId && !_adminConnections.ContainsKey(connectionId))
             throw new InvalidOperationException("Connection does not have permission to change parameters.");
 
         callback(_gameParameters);
 
-        return Task.CompletedTask;
+        await BroadcastParameters();
     }
 }

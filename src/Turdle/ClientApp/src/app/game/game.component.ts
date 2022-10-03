@@ -1,5 +1,5 @@
 import {Component, HostListener, Inject, Pipe, PipeTransform} from '@angular/core';
-import {Board, GameService, RoundState, Player, Row, PointSchedule} from "../services/game.service";
+import {Board, GameService, RoundState, Player, Row, PointSchedule, GameParameters} from "../services/game.service";
 import {ActivatedRoute, Router} from '@angular/router'
 import {OrderByPipe} from "../order-by.pipe";
 import TrackByUtils from "../track-by.utils";
@@ -124,6 +124,9 @@ export class GameComponent {
   }
   get roundState(): RoundState {
     return this.gameService.roundState;
+  }
+  get gameParams(): GameParameters | null {
+    return this.gameService.gameParams;
   }
   get pointSchedule(): PointSchedule | null {
     return this.gameService.pointSchedule;

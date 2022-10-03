@@ -38,6 +38,16 @@ public class GameController : ControllerBase
     }
 
     [HttpGet]
+    [Route("GetGameParameters")]
+    public Task<GameParameters> GetGameParameters(string roomCode)
+    {
+        using (LogContext.Create(_logger, "API", "GetGameParameters"))
+        {
+            return _roomManager.GetRoom(roomCode).GetGameParameters();
+        }
+    }
+
+    [HttpGet]
     [Route("GetFakeReadyBoard")]
     public Board GetFakeReadyBoard()
     {

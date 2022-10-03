@@ -16,6 +16,7 @@ export class GameService {
   public currentPlayer: Player | null = null;
   public currentBoard: Board | null = null;
   public currentWord: string = '';
+  public gameParams: GameParameters | null = null;
   public secondsUntilStart: number | null = null;
   private _previousAliasInfo: Subject<AliasInfo> = new Subject<AliasInfo>();
   public previousAliasInfoObservable: Observable<AliasInfo> = this._previousAliasInfo.asObservable();
@@ -74,6 +75,12 @@ export class GameService {
       });
     });
 
+    this.hubConnection?.on('GameParametersUpdated', (gameParams: GameParameters) => {
+      this.ngZone.run(() => {
+        this.gameParams = gameParams;
+      });
+    });
+
     this.hubConnection?.on('StartNewGame', (freshBoard: Board) => {
       this.ngZone.run(() => {
         this.currentBoard = freshBoard; // { status: 'Playing', rows: [], presentLetters: [], absentLetters: [], correctLetters: [], points: 0, currentRowPoints: 0, solvedOrder: null, rank: 1, isJointRank: true };
@@ -101,6 +108,11 @@ export class GameService {
     this.http.get<RoundState>(this.baseUrl + 'getgamestate', { params: new HttpParams().set('roomCode', this.roomCode) })
       .subscribe(async result => {
         this.roundState = result;
+      }, error => console.error(error));
+
+    this.http.get<GameParameters>(this.baseUrl + 'getgameparameters', { params: new HttpParams().set('roomCode', this.roomCode) })
+      .subscribe(async result => {
+        this.gameParams = result;
       }, error => console.error(error));
 
     this.http.get<Board>(this.baseUrl + 'getfakereadyboard').subscribe(async result => {
@@ -559,4 +571,11 @@ export interface Room {
   adminAlias: string;
   roundNumber: number;
   currentRoundStatus: string;
+}
+
+export interface GameParameters {
+    maxGuesses: number;
+    guessTimeLimitSeconds: number;
+    answerList: string;
+    useNaughtyWordList: boolean;
 }
