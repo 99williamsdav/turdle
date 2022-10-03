@@ -31,6 +31,8 @@ public class WordService
             AnswerListType.SixLetter => _possibleAnswers[6],
             AnswerListType.Random => 
                 _possibleAnswers[4].Concat(_possibleAnswers[5]).Concat(_possibleAnswers[6]).Concat(_possibleWordleAnswers).ToArray(),
+            AnswerListType.RandomNaughty =>
+                _naughtyWords[4].Concat(_naughtyWords[5]).Concat(_naughtyWords[6]).ToArray(),
         };
 
         return answerList.PickRandom();
@@ -160,5 +162,6 @@ public enum AnswerListType
     FiveLetterEasy,
     FiveLetterWordle,
     SixLetter,
-    Random
+    Random,
+    RandomNaughty
 }
