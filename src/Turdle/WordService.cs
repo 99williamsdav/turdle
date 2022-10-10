@@ -30,7 +30,7 @@ public class WordService
             AnswerListType.FiveLetterWordle => _possibleWordleAnswers,
             AnswerListType.SixLetter => _possibleAnswers[6],
             AnswerListType.Random => 
-                _possibleAnswers[4].Concat(_possibleAnswers[5]).Concat(_possibleAnswers[6]).Concat(_possibleWordleAnswers).ToArray(),
+                _possibleAnswers[4].Concat(_possibleAnswers[5]).Concat(_possibleAnswers[6]).ToArray(),
             AnswerListType.RandomNaughty =>
                 _naughtyWords[4].Concat(_naughtyWords[5]).Concat(_naughtyWords[6]).ToArray(),
         };

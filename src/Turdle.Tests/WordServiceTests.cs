@@ -19,6 +19,7 @@ public class WordServiceTests
     }
 
     [Theory]
+    [InlineData("DANDY", "SCORE", "BUILD", "HANDY")]
     [InlineData("WRONG", "WRING", "OOWOO", "WRONG")]
     public void PossibleValidGuesses(string answer, string guess1, string guess2, params string[] expectedValidGuesses)
     {
