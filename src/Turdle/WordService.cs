@@ -12,6 +12,7 @@ public class WordService
     private readonly IDictionary<int, string[]> _naughtyWords = new Dictionary<int, string[]>();
     private readonly IDictionary<int, HashSet<string>> _acceptedWords = new Dictionary<int, HashSet<string>>();
     private string[] _possibleWordleAnswers = new string[0];
+    private string[] _xmasWords;
 
     public WordService()
     {
@@ -19,6 +20,7 @@ public class WordService
         PopulateWords(5);
         PopulateWords(6);
         PopulateWordleAnswers();
+        PopulateXmasAnswers();
     }
 
     public string GetRandomWord(AnswerListType answerListType)
@@ -33,6 +35,7 @@ public class WordService
                 _possibleAnswers[4].Concat(_possibleAnswers[5]).Concat(_possibleAnswers[6]).ToArray(),
             AnswerListType.RandomNaughty =>
                 _naughtyWords[4].Concat(_naughtyWords[5]).Concat(_naughtyWords[6]).ToArray(),
+            AnswerListType.Xmas => _xmasWords,
         };
 
         return answerList.PickRandom();
@@ -154,6 +157,19 @@ public class WordService
             _possibleWordleAnswers = JsonConvert.DeserializeObject<string[]>(jsonFile).Distinct().ToArray();
         }
     }
+
+    private void PopulateXmasAnswers()
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+
+        var answerListFilename = $"Turdle.Resources.XmasAnswers.json";
+        using (Stream stream = assembly.GetManifestResourceStream(answerListFilename))
+        using (StreamReader reader = new StreamReader(stream))
+        {
+            string jsonFile = reader.ReadToEnd();
+            _xmasWords = JsonConvert.DeserializeObject<string[]>(jsonFile).Distinct().ToArray();
+        }
+    }
 }
 
 public enum AnswerListType
@@ -163,5 +179,6 @@ public enum AnswerListType
     FiveLetterWordle,
     SixLetter,
     Random,
-    RandomNaughty
+    RandomNaughty,
+    Xmas
 }
