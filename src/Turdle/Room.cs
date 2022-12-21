@@ -285,13 +285,16 @@ public class Room
             if (_internalRoundState.Status == RoundStatus.Starting)
                 throw new HubException("Game is already starting.");
 
+            var newRoundNumber = 1;
             if (_internalRoundState.Status == RoundStatus.Finished)
             {
                 _previousRoundStates.Add(_internalRoundState);
+                newRoundNumber = _internalRoundState.RoundNumber + 1;
                 // TODO remove any players no longer connected?
-                _internalRoundState = new InternalRoundState(_wordService.GetRandomWord(_gameParameters.AnswerList),
-                    _internalRoundState.Players, _internalRoundState.RoundNumber + 1, _pointService, _gameParameters.Clone());
             }
+
+            _internalRoundState = new InternalRoundState(_wordService.GetRandomWord(_gameParameters.AnswerList),
+                _internalRoundState.Players, newRoundNumber, _pointService, _gameParameters.Clone());
 
             _internalRoundState.StartNew(DateTime.Now.AddSeconds(StartCountdownSeconds));
             
