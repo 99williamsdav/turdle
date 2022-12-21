@@ -368,6 +368,9 @@ public class Room
 
     public async Task<Result<Board>> PlayGuess(string connectionId, string guess, int guessNumber)
     {
+        if (guess.Length != _internalRoundState.CorrectAnswer.Length)
+            return new Result<Board>("Incorrect length");
+
         if (!_wordService.IsWordAccepted(guess))
             return new Result<Board>("Not in word list");
 

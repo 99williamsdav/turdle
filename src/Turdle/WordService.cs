@@ -10,7 +10,8 @@ public class WordService
 {
     private readonly IDictionary<int, string[]> _possibleAnswers = new Dictionary<int, string[]>();
     private readonly IDictionary<int, string[]> _naughtyWords = new Dictionary<int, string[]>();
-    private readonly IDictionary<int, HashSet<string>> _acceptedWords = new Dictionary<int, HashSet<string>>();
+    private readonly IDictionary<int, HashSet<string>> _acceptedWordsByLength = new Dictionary<int, HashSet<string>>();
+    private HashSet<string> _acceptedWords;
     private string[] _possibleWordleAnswers = new string[0];
     private string[] _xmasWords;
 
@@ -21,6 +22,12 @@ public class WordService
         PopulateWords(6);
         PopulateWordleAnswers();
         PopulateXmasAnswers();
+
+        _acceptedWords = _acceptedWordsByLength[4]
+            .Concat(_acceptedWordsByLength[5])
+            .Concat(_acceptedWordsByLength[6])
+            .Concat(_xmasWords)
+            .ToHashSet();
     }
 
     public string GetRandomWord(AnswerListType answerListType)
@@ -43,7 +50,7 @@ public class WordService
 
     public bool IsWordAccepted(string word)
     {
-        return _acceptedWords[word.Length].Contains(word);
+        return _acceptedWords.Contains(word);
     }
 
     public string[] GetPossibleValidGuesses(Board board, int length) => GetPossibleValidGuesses(board.CorrectLetters,
@@ -86,7 +93,7 @@ public class WordService
             return true;
         }
 
-        var validWords = _acceptedWords[length]
+        var validWords = _acceptedWordsByLength[length]
             .Where(word => Regex.IsMatch(word, regex))
             .Where(HasAllPresentLetters).ToArray();
         
@@ -142,7 +149,7 @@ public class WordService
             }
         }
 
-        _acceptedWords[length] = new HashSet<string>(dictionary.Concat(_possibleAnswers[length]).Concat(removedAnswers).Concat(_naughtyWords[length]));
+        _acceptedWordsByLength[length] = new HashSet<string>(dictionary.Concat(_possibleAnswers[length]).Concat(removedAnswers).Concat(_naughtyWords[length]));
     }
 
     private void PopulateWordleAnswers()
