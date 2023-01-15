@@ -25,3 +25,7 @@
 .room-code>span {
   cursor: pointer;
 }
+
+.give-up {
+    font-size: 10px;
+}

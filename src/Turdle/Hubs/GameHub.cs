@@ -130,6 +130,22 @@ public class GameHub : Hub
         }
     }
 
+    public Task<Result<Board>> GiveUp(string roomCode)
+    {
+        using (LogContext.Create(_logger, Context.ConnectionId, "GiveUp"))
+        {
+            _logger.LogInformation($"GiveUp({roomCode})");
+            try
+            {
+                return _roomManager.GetRoom(roomCode).GiveUp(Context.ConnectionId);
+            }
+            catch (Exception e)
+            {
+                throw new HubException(e.Message);
+            }
+        }
+    }
+
     public Task<Result<Board>> RevealAbsentLetter(string roomCode)
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "RevealAbsentLetter"))

@@ -125,6 +125,20 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
         return board;
     }
 
+    public Board GiveUp(string alias)
+    {
+        if (Status != RoundStatus.Playing)
+            throw new HubException("Cannot give up when game is not in-play.");
+
+        var board = GetBoard(alias);
+        board.GiveUp();
+
+        if (board.IsFinished && _players.All(x => x.Board?.IsFinished == true))
+            Finish();
+
+        return board;
+    }
+
     public string? SuggestGuess(WordService wordService, string alias)
     {
         var board = GetBoard(alias);

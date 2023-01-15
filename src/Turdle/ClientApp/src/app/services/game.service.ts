@@ -248,6 +248,24 @@ export class GameService {
     }
   }
 
+  public async giveUp(): Promise<void> {
+    if (this.hubConnection == null)
+      return;
+
+    try {
+      let result = await this.hubConnection.invoke<Result<Board>>('GiveUp', this.roomCode);
+      if (result.isSuccess) {
+        this.currentBoard = result.response;
+        this.currentWord = '';
+      } else {
+        // TODO nice alert
+        alert(result.errorMessage);
+      }
+    } catch (e) {
+      console.log('Error giving up: ' + e);
+    }
+  }
+
   public async logOut(): Promise<void> {
     if (this.hubConnection == null)
       return;

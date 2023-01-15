@@ -104,6 +104,9 @@ export class GameComponent {
     }
   }
 
+  public async giveUp(): Promise<void> {
+    await this.gameService.giveUp();
+  }
   public async suggestGuess(): Promise<void> {
     await this.gameService.suggestGuess();
   }

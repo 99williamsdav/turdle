@@ -100,18 +100,24 @@
       <div class="col-md-2"></div>
       <div class="col-md-8">
         <div class="d-flex justify-content-between">
-          <h2>
+          <h3>
             <span class="badge alert-primary unselectable" (click)="roundState.status == 'Finished' && startGame()">
               {{ currentPlayer?.board?.isJointRank ? '=' : '' }}{{ currentPlayer?.board?.rank }}<sup>{{ currentPlayer?.board?.rank | ordinal:false }}</sup>
             </span>
-          </h2>
-          <h2 *ngIf="roundState.status != 'Finished'">Go {{ currentPlayer?.alias }}!</h2>
+          </h3>
+          <h3 *ngIf="roundState.status != 'Finished'">Go {{ currentPlayer?.alias }}!</h3>
           <!-- TODO Limit this to admin only-->
-          <h2 *ngIf="roundState.status == 'Finished'"><a class="btn btn-outline-success btn-lg" (click)="startGame()">Start Round</a></h2>
-          <h2>
+          <h3 *ngIf="roundState.status == 'Finished'"><a class="btn btn-outline-success btn-lg" (click)="startGame()">Start Round</a></h3>
+          <h3>
             <span class="badge alert-info">{{ currentPlayer?.board?.points }}pts</span>
-          </h2>
+          </h3>
         </div>
+      </div>
+      <div class="col-md-2">
+        <a *ngIf="roundState.status == 'Playing' && currentBoard != null && currentBoard.status == 'Playing' && currentBoard.rows.length >= 3"
+           class="btn btn-danger btn-sm give-up" (click)="giveUp()">
+          Give<br />Up
+        </a>
       </div>
     </div>
 

@@ -122,6 +122,14 @@ public class Board : IBoard<Board.Row, Board.Tile>
         return errors;
     }
 
+    public void GiveUp()
+    {
+        if (Status != BoardStatus.Playing)
+            throw new InvalidOperationException($"Cannot give up while status is {Status}");
+
+        Status = BoardStatus.Failed;
+    }
+
     public void AddPointAdjustment(PointAdjustmentReason reason, int points)
     {
         CurrentRowPointsAdjustments.Add(new PointAdjustment(reason, points));

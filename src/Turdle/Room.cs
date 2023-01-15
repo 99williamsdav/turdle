@@ -411,6 +411,22 @@ public class Room
         return guess;
     }
 
+    public async Task<Result<Board>> GiveUp(string connectionId)
+    {
+        Board board;
+        MaskedRoundState maskedRoundState;
+        lock (_stateLock)
+        {
+            var player = _playersByConnectionId[connectionId];
+            board = _internalRoundState.GiveUp(player.Alias);
+            maskedRoundState = _internalRoundState.Mask();
+        }
+
+        await BroadcastRoundState(_internalRoundState, maskedRoundState);
+
+        return new Result<Board>(board);
+    }
+
     public async Task<Result<Board>> RevealAbsentLetter(string connectionId)
     {
         Board board;
