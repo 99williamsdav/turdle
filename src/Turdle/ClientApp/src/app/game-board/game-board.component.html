@@ -9,8 +9,11 @@
 
       <tr *ngFor="let row of board.rows; trackBy: trackByUtils.trackByRow" class="game-row played-row">
         <td class="order-cell">
-          <span *ngIf="!row.isCorrect && row.playedOrder">
+          <span *ngIf="!row.isCorrect && row.playedOrder && !row.emoji">
             {{ row.playedOrder }}<sup>{{ row.playedOrder | ordinal }}</sup>
+          </span>
+          <span *ngIf="!row.isCorrect && row.emoji">
+            {{ row.emoji }}
           </span>
           <span *ngIf="row.wasForced" title="turdletron">
             🤖

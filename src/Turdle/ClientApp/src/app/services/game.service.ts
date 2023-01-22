@@ -540,6 +540,7 @@ export interface Row {
   pointsAdjustments: PointAdjustment[];
   wasForced: boolean;
   wordHash: string;
+  emoji: string | null;
 }
 
 export interface TileError {

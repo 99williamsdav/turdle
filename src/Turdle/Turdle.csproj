@@ -35,7 +35,11 @@
 
     <ItemGroup>
       <Content Remove="Resources\PossibleAnswers.json" />
+      <Content Remove="Resources\WordEmojis.json" />
       <Content Remove="Resources\_5_PossibleWordleAnswers.json" />
+      <EmbeddedResource Include="Resources\WordEmojis.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </EmbeddedResource>
       <EmbeddedResource Include="Resources\XmasAnswers.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </EmbeddedResource>

@@ -44,6 +44,7 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
 {
     private readonly List<Player> _players = new List<Player>();
     private readonly IPointService _pointService;
+    private readonly WordService _wordService;
     public Player[] Players { get; private set; } = Array.Empty<Player>();
     
     public string CorrectAnswer { get; }
@@ -68,20 +69,25 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
 
     public void SetBoard(string alias, Board board) => BoardsByAlias[alias] = board;
 
-    public InternalRoundState(string correctAnswer, IPointService pointService, GameParameters gameParameters)
+    public InternalRoundState(string correctAnswer, IPointService pointService, GameParameters gameParameters, 
+        WordService wordService)
     {
         CorrectAnswer = correctAnswer;
         _pointService = pointService;
+        _wordService = wordService;
         RoundNumber = 1;
         MaxGuesses = gameParameters.MaxGuesses;
         GuessTimeLimit = TimeSpan.FromSeconds(gameParameters.GuessTimeLimitSeconds);
     }
 
-    public InternalRoundState(string correctAnswer, IEnumerable<Player> previousPlayers, int roundNumber, IPointService pointService, GameParameters gameParameters)
+    public InternalRoundState(string correctAnswer, IEnumerable<Player> previousPlayers, 
+        int roundNumber, IPointService pointService, GameParameters gameParameters,
+        WordService wordService)
     {
         CorrectAnswer = correctAnswer;
         RoundNumber = roundNumber;
         _pointService = pointService;
+        _wordService = wordService;
         _players = previousPlayers.Select(x => x.CopyForNewGame()).ToList();
         Players = _players.ToArray();
         Status = RoundStatus.Ready;
@@ -116,8 +122,10 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
         var playedOrder = _players.Any(x => x.Board?.Status == BoardStatus.Solved && x.Board?.Rows.Length < guessNum)
             ? (int?)null : _players.Count(x => x.Board?.Rows.Length >= guessNum) + 1;
         var solvedCount = _players.Count(x => x.Board?.Status == BoardStatus.Solved);
-        
-        board.AddRow(guess, CorrectAnswer, playedOrder, solvedCount, _players.Count, _pointService, maxGuesses: MaxGuesses);
+        var emoji = _wordService.GetWordEmoji(guess);
+
+        board.AddRow(guess, CorrectAnswer, playedOrder, solvedCount, _players.Count, _pointService, 
+            maxGuesses: MaxGuesses, similarWords: similarWords, emoji: emoji);
         
         if (board.IsFinished && _players.All(x => x.Board?.IsFinished == true))
             Finish();
@@ -168,7 +176,8 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
             {
                 if (suggestedGuessPointCost != 0)
                     player.Board.AddPointAdjustment(PointAdjustmentReason.GuessSuggested, -suggestedGuessPointCost);
-                player.Board.AddRow(suggestedGuess, CorrectAnswer, null, null, _players.Count, wasForced: true);
+                var emoji = _wordService.GetWordEmoji(suggestedGuess);
+                player.Board.AddRow(suggestedGuess, CorrectAnswer, null, null, _players.Count, wasForced: true, emoji: emoji);
             }
             else
             {

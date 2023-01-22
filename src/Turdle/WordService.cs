@@ -14,6 +14,7 @@ public class WordService
     private HashSet<string> _acceptedWords;
     private string[] _possibleWordleAnswers = new string[0];
     private string[] _xmasWords;
+    private IDictionary<string, string> _wordEmojis;
 
     public WordService()
     {
@@ -28,6 +29,8 @@ public class WordService
             .Concat(_acceptedWordsByLength[6])
             .Concat(_xmasWords)
             .ToHashSet();
+
+        PopulateEmojiWords();
     }
 
     public string GetRandomWord(AnswerListType answerListType)
@@ -98,6 +101,11 @@ public class WordService
             .Where(HasAllPresentLetters).ToArray();
         
         return validWords;
+    }
+
+    public string? GetWordEmoji(string word)
+    {
+        return _wordEmojis.TryGetValue(word, out var ret) ? ret : null;
     }
 
     private void PopulateWords(int length)
@@ -175,6 +183,19 @@ public class WordService
         {
             string jsonFile = reader.ReadToEnd();
             _xmasWords = JsonConvert.DeserializeObject<string[]>(jsonFile).Distinct().ToArray();
+        }
+    }
+
+    private void PopulateEmojiWords()
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+
+        var filename = $"Turdle.Resources.WordEmojis.json";
+        using (Stream stream = assembly.GetManifestResourceStream(filename))
+        using (StreamReader reader = new StreamReader(stream))
+        {
+            string jsonFile = reader.ReadToEnd();
+            _wordEmojis = JsonConvert.DeserializeObject<IDictionary<string, string>>(jsonFile);
         }
     }
 }

@@ -48,7 +48,8 @@ public class Board : IBoard<Board.Row, Board.Tile>
     
 
     public List<TileError> AddRow(string guess, string correctAnswer, int? playedOrder, int? solvedCount,
-        int playerCount, IPointService? pointService = null, (string, int)[]? similarWords = null, bool wasForced = false, int maxGuesses = 6)
+        int playerCount, IPointService? pointService = null, (string, int)[]? similarWords = null, 
+        bool wasForced = false, int maxGuesses = 6, string? emoji = null)
     {
         if (guess.Length != correctAnswer.Length)
             throw new InvalidOperationException($"Word must be {correctAnswer.Length} letters");
@@ -56,7 +57,8 @@ public class Board : IBoard<Board.Row, Board.Tile>
             throw new InvalidOperationException("Board is already complete");
         
         guess = guess.ToUpper();
-        var row = new Row(guess, correctAnswer, playedOrder, _rows.Count + 1, CurrentRowPointsAdjustments, wasForced);
+        var row = new Row(guess, correctAnswer, playedOrder, _rows.Count + 1, CurrentRowPointsAdjustments, 
+            wasForced, similarWords, emoji);
         CurrentRowPointsAdjustments = new List<PointAdjustment>();
         _rows.Add(row);
         Rows = _rows.ToArray();
@@ -214,12 +216,14 @@ public class Board : IBoard<Board.Row, Board.Tile>
         public int GuessNumber { get; private set; }
         public bool WasForced { get; private set; }
         public string WordHash => this.ToString().GetHashCode().ToString("X");
+        public string? Emoji { get; private set; }
         
         public (string, int)[]? SimilarWords { get; private set; }
 
         public Row(string guess, string correctAnswer, int? playedOrder, int guessNumber, 
             IList<PointAdjustment> inPlayPointAdjustments, 
-            bool wasForced = false, (string, int)[]? similarWords = null)
+            bool wasForced = false, (string, int)[]? similarWords = null,
+            string? emoji = null)
         {
             PlayedOrder = playedOrder;
             GuessNumber = guessNumber;
@@ -227,6 +231,7 @@ public class Board : IBoard<Board.Row, Board.Tile>
             PointsAwarded = inPlayPointAdjustments.Sum(x => x.Points);
             WasForced = wasForced;
             SimilarWords = similarWords;
+            Emoji = emoji;
             
             var correctLetters = guess.Where((c, i) => c == correctAnswer[i]).ToArray();
             var presentLetters = new List<char>();
