@@ -29,7 +29,7 @@ jobs:
       run: |
         #dotnet build --no-restore
         dotnet build --configuration Release --no-restore
-        dotnet publish -c Release -o ~/build/turdle -r linux-x64 --self-contained true /p:UseAppHost=true
+        dotnet publish -c Release -o ~/build/turdle /p:UseAppHost=true
     #- name: Test
     #  run: dotnet test --no-build --verbosity normal
     - name: Publish
