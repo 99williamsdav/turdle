@@ -39,12 +39,12 @@ jobs:
         path: ~/build/turdle
     - name: Tar
       run: |
-        tar -cvf turdle.tar ~/build/turdle
+        tar -cvf ~/build/turdle.tar ~/build/turdle
     - name: Upload
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.CONNECTION_STRING }}
         username: ${{ secrets.DEPLOY_USER }}
         password: ${{ secrets.DEPLOY_USER_PWD }}
-        source: "turdle.tar"
+        source: "~/build/turdle.tar"
         target: ${{ secrets.TARGET_DIR }}
