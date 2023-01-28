@@ -36,7 +36,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: turdle
-        path: ../build/turdle
+        path: ~/build/turdle
     - name: Tar
       run: |
         tar -cvf ../build/turdle.tar ../build/turdle
