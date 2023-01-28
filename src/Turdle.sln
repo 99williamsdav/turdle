@@ -1,8 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Turdle", "Turdle\Turdle.csproj", "{3F5429BC-FF99-4FCA-AB2D-FEB6EC6AEFAF}"
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33110.190
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Turdle", "Turdle\Turdle.csproj", "{3F5429BC-FF99-4FCA-AB2D-FEB6EC6AEFAF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Turdle.Tests", "Turdle.Tests\Turdle.Tests.csproj", "{B41796C6-F9D0-4392-978C-E2130ADECD48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Turdle.Tests", "Turdle.Tests\Turdle.Tests.csproj", "{B41796C6-F9D0-4392-978C-E2130ADECD48}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Turdle.Tools", "Turdle.Tools\Turdle.Tools.csproj", "{4C03044A-5505-4CEA-A00F-721C77BA1D85}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,5 +23,15 @@ Global
 		{B41796C6-F9D0-4392-978C-E2130ADECD48}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B41796C6-F9D0-4392-978C-E2130ADECD48}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B41796C6-F9D0-4392-978C-E2130ADECD48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C03044A-5505-4CEA-A00F-721C77BA1D85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C03044A-5505-4CEA-A00F-721C77BA1D85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C03044A-5505-4CEA-A00F-721C77BA1D85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C03044A-5505-4CEA-A00F-721C77BA1D85}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CCE4B647-F877-4898-B13C-B306172FF06F}
 	EndGlobalSection
 EndGlobal
