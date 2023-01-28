@@ -37,3 +37,11 @@ jobs:
       with:
         name: turdle
         path: ~/build/turdle
+    - name: Upload
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.CONNECTION_STRING }}
+        username: ${{ secrets.DEPLOY_USER }}
+        password: ${{ secrets.DEPLOY_USER_PWD }}
+        source: "~/build/turdle"
+        target: ${{ secrets.TARGET_DIR }}
