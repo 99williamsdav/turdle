@@ -29,22 +29,22 @@ jobs:
       run: |
         #dotnet build --no-restore
         dotnet build --configuration Release --no-restore
-        dotnet publish Turdle -c Release -o ~/build/turdle --no-self-contained /p:UseAppHost=false
+        dotnet publish Turdle -c Release -o ../build/turdle --no-self-contained /p:UseAppHost=false
     #- name: Test
     #  run: dotnet test --no-build --verbosity normal
     - name: Publish
       uses: actions/upload-artifact@v3
       with:
         name: turdle
-        path: ~/build/turdle
+        path: ../build/turdle
     - name: Tar
       run: |
-        tar -cvf ~/build/turdle.tar ~/build/turdle
+        tar -cvf ../build/turdle.tar ../build/turdle
     - name: Upload
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.CONNECTION_STRING }}
         username: ${{ secrets.DEPLOY_USER }}
         password: ${{ secrets.DEPLOY_USER_PWD }}
-        source: "~/build/turdle.tar"
+        source: "../build/turdle.tar"
         target: ${{ secrets.TARGET_DIR }}
