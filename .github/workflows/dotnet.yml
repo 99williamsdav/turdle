@@ -43,5 +43,5 @@ jobs:
         host: ${{ secrets.CONNECTION_STRING }}
         username: ${{ secrets.DEPLOY_USER }}
         password: ${{ secrets.DEPLOY_USER_PWD }}
-        source: "~/build/turdle"
+        source: ~/build/turdle
         target: ${{ secrets.TARGET_DIR }}
