@@ -29,12 +29,12 @@ jobs:
     - name: Build
       working-directory: ./src
       run: |
-        #dotnet build --no-restore
         dotnet build --configuration Release --no-restore
         dotnet publish Turdle -c Release -o ~/build/turdle --no-self-contained /p:UseAppHost=false
-    #- name: Test
-    #  run: dotnet test --no-build --verbosity normal
-    - name: Publish
+    - name: Test
+      working-directory: ./src
+      run: dotnet test --no-build --verbosity normal
+    - name: Publish Artifact
       uses: actions/upload-artifact@v3
       with:
         name: turdle
