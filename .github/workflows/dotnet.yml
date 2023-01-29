@@ -26,6 +26,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
+      working-directory: ./src
       run: |
         #dotnet build --no-restore
         dotnet build --configuration Release --no-restore
