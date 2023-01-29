@@ -44,6 +44,7 @@ export class GameComponent {
 
     this.gameService.previousAliasInfoObservable.subscribe(aliasInfo =>
     {
+      console.log(`previousAlias info: ${aliasInfo.alias} (${aliasInfo.status})`)
       if (aliasInfo.status == 'RegisteredConnected') {
         // TODO just don't register
         return this.router.navigate(['/']);
@@ -60,7 +61,7 @@ export class GameComponent {
         if (!connected)
           return new Promise<void>(() => null);
 
-        console.log('Hub connected, registering alias.');
+        console.log(`Hub connected, registering alias: ${alias}`);
         return this.gameService.registerAlias(alias);
       });
     });
