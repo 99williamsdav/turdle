@@ -41,7 +41,7 @@ jobs:
         path: ~/build/turdle
     - name: Tar
       run: |
-        tar -cvf turdle.tar ~/build/turdle
+        tar -C ~/build/turdle -cvf turdle.tar .
     - name: Upload
       uses: appleboy/scp-action@master
       with:
