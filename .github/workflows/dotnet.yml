@@ -33,7 +33,7 @@ jobs:
         dotnet publish Turdle -c Release -o ~/build/turdle --no-self-contained /p:UseAppHost=false
     - name: Test
       working-directory: ./src
-      run: dotnet test --no-build --verbosity normal
+      run: dotnet test --verbosity normal
     - name: Publish Artifact
       uses: actions/upload-artifact@v3
       with:
