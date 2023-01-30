@@ -12,14 +12,14 @@
           <span *ngIf="!row.isCorrect && row.playedOrder && !row.emoji">
             {{ row.playedOrder }}<sup>{{ row.playedOrder | ordinal }}</sup>
           </span>
-          <span *ngIf="!row.isCorrect && row.emoji">
-            {{ row.emoji }}
+          <span *ngIf="row.isCorrect && board.solvedOrder" class="solved-order">
+            {{ board.solvedOrder }}<sup>{{ board.solvedOrder | ordinal }}</sup>
           </span>
           <span *ngIf="row.wasForced" title="turdletron">
             🤖
           </span>
-          <span *ngIf="row.isCorrect && board.solvedOrder" class="solved-order">
-            {{ board.solvedOrder }}<sup>{{ board.solvedOrder | ordinal }}</sup>
+          <span *ngIf="!row.isCorrect && !row.wasForced && row.emoji">
+            {{ row.emoji }}
           </span>
         </td>
 
