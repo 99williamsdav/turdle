@@ -62,8 +62,12 @@ public class WordService
     public string[] GetPossibleValidGuesses(HashSet<Board.LetterPosition> correctLetters,
         HashSet<Board.LetterPosition> presentLetters, HashSet<char> absentLetters, Dictionary<char, int> presentLetterCounts, int length)
     {
-        // remove present letters from absent letters to handle case where only the 2nd instance was absent
-        absentLetters = absentLetters.Except(presentLetterCounts.Select(x => x.Key)).ToHashSet();
+        // remove unknown present letters from absent letters to handle case where only the 2nd instance was absent
+        var presentUnknownLetters = presentLetterCounts
+            .Where(x => x.Value > correctLetters.Count(l => l.Letter == x.Key))
+            .Select(x => x.Key)
+            .ToArray();
+        absentLetters = absentLetters.Except(presentUnknownLetters).ToHashSet();
         
         var regex = "";
         for (var i = 0; i < length; i++)

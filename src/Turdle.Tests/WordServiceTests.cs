@@ -38,6 +38,7 @@ public class WordServiceTests
 
     [Theory]
     [InlineData("WRONG", "WRING", "ABWCO", "WRUNG")]
+    [InlineData("REPORT", "RESORT", "RETORT", "RETORT")]
     public void ImpossibleValidGuesses(string answer, string guess1, string guess2, params string[] expectedInvalidGuesses)
     {
         var board = new Board();
@@ -45,7 +46,7 @@ public class WordServiceTests
         board.AddRow(guess2, answer, 1, 0, 1, null);
 
         var validGuesses =
-            _wordService.GetPossibleValidGuesses(board.CorrectLetters, board.PresentLetters, board.AbsentLetters, board.PresentLetterCounts, 5);
+            _wordService.GetPossibleValidGuesses(board.CorrectLetters, board.PresentLetters, board.AbsentLetters, board.PresentLetterCounts, answer.Length);
         Assert.NotEmpty(validGuesses);
 
         foreach (var guess in expectedInvalidGuesses)
