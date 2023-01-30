@@ -5,6 +5,9 @@ import {OrderByPipe} from "../order-by.pipe";
 import TrackByUtils from "../track-by.utils";
 import {FormBuilder, Validators} from "@angular/forms";
 import {ToastService} from "../toast/toast-service";
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { GameParamsComponent } from '../game-params/game-params.component';
+import { AdminService } from '../services/admin.service';
 
 @Component({
   selector: 'app-game',
@@ -25,7 +28,8 @@ export class GameComponent {
     private fb: FormBuilder,
     private router: Router,
     private orderByPipe: OrderByPipe,
-    public trackByUtils: TrackByUtils) {
+    public trackByUtils: TrackByUtils,
+    private modalService: NgbModal) {
     console.log('GameComponent ctor');
   }
 
@@ -116,6 +120,24 @@ export class GameComponent {
   }
   public async revealPresentLetter(): Promise<void> {
     await this.gameService.revealPresentLetter();
+  }
+  public async updateAnswerList(): Promise<void> {
+    try {
+      await this.gameService.updateAnswerList(this.gameParams!.answerList);
+    } catch (e: any) {
+      this.toastService.default(e.message);
+    }
+  }
+  public openGameParams(): void {
+    const modalRef = this.modalService.open(GameParamsComponent);
+    modalRef.componentInstance.gameParams = this.gameParams;
+    modalRef.result.then((result: boolean) => {
+      if (result) {
+        this.updateAnswerList();
+      }
+    }, (reason: string) => {
+      console.log('Dismissed action: ' + reason);
+    });
   }
 
   // PROPERTY GETTERS

@@ -16,6 +16,9 @@ public class GameParameters
     // TODO implement
     public bool UseNaughtyWordList { get; set; } = true;
 
+    // TODO better way of syncing alias?
+    public string? AdminAlias { get; set; }
+
     public GameParameters Clone() => (GameParameters)this.MemberwiseClone();
 
     private GameParameters() { }

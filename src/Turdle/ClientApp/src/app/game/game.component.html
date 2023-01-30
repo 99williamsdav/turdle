@@ -65,6 +65,13 @@
     </div>
 
     <div class="col-md-3">
+      <div *ngIf="gameParams?.adminAlias != null && gameParams!.adminAlias == currentPlayer?.alias">
+        <button class="btn btn-sm btn-warning unselectable" (click)="openGameParams()">
+          Change Settings
+        </button>
+        <br />
+        <br />
+      </div>
       <point-schedule *ngIf="pointSchedule != null" [pointSchedule]="pointSchedule" [playerCount]="roundState.players.length"></point-schedule>
     </div>
   </div>
@@ -189,19 +196,29 @@
   </div>
 
   <div class="col-md-2">
+    <div *ngIf="gameParams?.adminAlias != null && gameParams!.adminAlias == currentPlayer?.alias">
+      <button class="btn btn-sm btn-warning unselectable">
+        Change Settings
+      </button>
+      <br />
+      <br />
+    </div>
     <div class="card">
       <div class="card-body">
         <table class="table">
           <thead>
-          <tr>
-            <th></th><th></th><th>Total</th><th>Round {{ roundState.roundNumber }}</th>
-          </tr>
+            <tr>
+              <th></th>
+              <th></th>
+              <th>Total</th>
+              <th>Round {{ roundState.roundNumber }}</th>
+            </tr>
           </thead>
           <tr *ngFor="let player of roundState.players | orderBy:'rank'; trackBy: trackByUtils.trackByPlayer">
             <td>
-            <span class="badge alert-primary">
-              {{ player.isJointRank ? '=' : '' }}{{ player.rank }}<sup>{{ player.rank | ordinal:false }}</sup>
-            </span>
+              <span class="badge alert-primary">
+                {{ player.isJointRank ? '=' : '' }}{{ player.rank }}<sup>{{ player.rank | ordinal:false }}</sup>
+              </span>
             </td>
             <th>{{ player.alias }}</th>
             <th>{{ player.points }}</th>
@@ -211,7 +228,7 @@
       </div>
     </div>
 
-    <br/>
+    <br />
     <point-schedule *ngIf="pointSchedule != null" [pointSchedule]="pointSchedule" [playerCount]="roundState.players.length"></point-schedule>
   </div>
 </div>

@@ -49,7 +49,7 @@ public class Room
         ILogger<RoomManager> logger, 
         IWordAnalysisService wordAnalyst, 
         string roomCode, 
-        string adminConnectionId, Func<Task> roomSummaryUpdatedCallback)
+        Func<Task> roomSummaryUpdatedCallback)
     {
         _hubContext = hubContext;
         _adminHubContext = adminHubContext;
@@ -116,16 +116,32 @@ public class Room
     {
         Player? player;
         MaskedRoundState maskedRoundState;
+        bool paramsChanged = false;
         lock (_stateLock)
         {
             _playersByConnectionId.Remove(connectionId, out _);
             player = _internalRoundState.RegisterPlayer(alias, connectionId, ipAddress);
-            _playersByConnectionId.TryAdd(connectionId, player);
-            _adminConnectionId ??= connectionId;
+            _playersByConnectionId[connectionId] = player;
+
+            if (_adminConnectionId == null)
+            {
+                _adminConnectionId = connectionId;
+                _gameParameters.AdminAlias = alias;
+                paramsChanged = true;
+            }
+            // if admin has refreshed
+            else if (_playersByConnectionId.TryGetValue(_adminConnectionId, out var admin) &&
+                admin == player &&
+                connectionId != _adminConnectionId)
+            {
+                _adminConnectionId = connectionId;
+            }
 
             maskedRoundState = _internalRoundState.Mask();
         }
         await BroadcastRoundState(_internalRoundState, maskedRoundState);
+        if (paramsChanged)
+            await BroadcastParameters();
         await _roomSummaryUpdatedCallback();
         return player;
     }
@@ -202,6 +218,7 @@ public class Room
     {
         MaskedRoundState maskedRoundState;
         Player player;
+        bool paramsChanged = false;
         lock (_stateLock)
         {
             player = _internalRoundState.RemovePlayer(alias);
@@ -211,7 +228,11 @@ public class Room
             }
 
             if (_adminConnectionId == player.ConnectionId)
+            {
                 _adminConnectionId = _playersByConnectionId.Count > 0 ? _playersByConnectionId.First().Key : null;
+                _gameParameters.AdminAlias = _playersByConnectionId.Count > 0 ? _playersByConnectionId.First().Value.Alias : null;
+                paramsChanged = true;
+            }
             
             if (_internalRoundState.Status == RoundStatus.Playing &&
                 _internalRoundState.Players.All(x => x.Board.Status is BoardStatus.Solved or BoardStatus.Failed))
@@ -224,6 +245,8 @@ public class Room
         }
         
         await BroadcastRoundState(_internalRoundState, maskedRoundState, player.ConnectionId);
+        if (paramsChanged)
+            await BroadcastParameters();
         await _roomSummaryUpdatedCallback();
     }
 

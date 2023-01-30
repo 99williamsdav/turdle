@@ -1,0 +1,22 @@
+<div class="modal-body">
+  <label>Answer List</label>
+  <select name="answerListType"
+          id="answerListType"
+          class="form-control"
+          [(ngModel)]="gameParams.answerList">
+    <option [value]="'FourLetter'">4</option>
+    <option [value]="'FiveLetterEasy'">5 (Generated)</option>
+    <option [value]="'FiveLetterWordle'">5 (Wordle)</option>
+    <option [value]="'SixLetter'">6</option>
+    <option [value]="'Random'">Random</option>
+    <option [value]="'RandomNaughty'">Random (Naughty)</option>
+  </select>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-outline-success" (click)="saveChanges()">
+    Save
+  </button>
+  <button type="button" class="btn btn-outline-dark" (click)="close()">
+    Close
+  </button>
+</div>

@@ -25,6 +25,7 @@ import TrackByUtils from "./track-by.utils";
 import {PointScheduleComponent} from "./point-schedule/point-schedule.component";
 import {HomeService} from "./services/home.service";
 import {ToastsContainer} from "./toast/toasts-container.component";
+import { GameParamsComponent } from './game-params/game-params.component';
 
 @NgModule({
   declarations: [
@@ -42,6 +43,7 @@ import {ToastsContainer} from "./toast/toasts-container.component";
     FormatMillisecondsPipe,
     TvComponent,
     PointScheduleComponent,
+    GameParamsComponent,
     NotAliasPipe,
     ToastsContainer
   ],

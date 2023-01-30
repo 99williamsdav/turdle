@@ -52,7 +52,7 @@ public class RoomManager
         }
 
         var room = new Room(_gameHubContext, _adminHubContext, _wordService, _pointService, _logger, _wordAnalyst,
-            roomCode, adminConnectionId, BroadcastRooms);
+            roomCode, BroadcastRooms);
         _rooms.TryAdd(roomCode, room);
 
         await BroadcastRooms();

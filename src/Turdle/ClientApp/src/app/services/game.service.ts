@@ -593,8 +593,9 @@ export interface Room {
 }
 
 export interface GameParameters {
-    maxGuesses: number;
-    guessTimeLimitSeconds: number;
-    answerList: string;
-    useNaughtyWordList: boolean;
+  maxGuesses: number;
+  guessTimeLimitSeconds: number;
+  answerList: string;
+  useNaughtyWordList: boolean;
+  adminAlias: string | null;
 }
