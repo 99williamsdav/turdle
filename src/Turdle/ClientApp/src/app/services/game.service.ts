@@ -93,6 +93,8 @@ export class GameService {
 
     this.hubConnection?.on('BoardUpdated', (board: Board) => {
       this.ngZone.run(() => {
+        if (board.rows.length > (this.currentBoard?.rows.length || 0))
+          this.currentWord = '';
         this.currentBoard = board;
         this.hydrateKnownWords();
       });
