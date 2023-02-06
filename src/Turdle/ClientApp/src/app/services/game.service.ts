@@ -12,7 +12,7 @@ export class GameService {
 
   public playerAlias: string = '';
   public pointSchedule: PointSchedule | null = null;
-  public roundState: RoundState = { status: 'Waiting', players: [], startTime: null, roundNumber: 1, guessDeadlines: null, currentExpectedGuessCount: 0, nextGuessDeadline: null, guessTimeLimitMs: null, correctAnswer: null, wordLength: 5, maxGuesses: 6};
+  public roundState: RoundState = { status: 'Waiting', players: [], startTime: null, roundNumber: 1, correctAnswer: null, wordLength: 5, maxGuesses: 6};
   public currentPlayer: Player | null = null;
   public currentBoard: Board | null = null;
   public currentWord: string = '';
@@ -45,7 +45,7 @@ export class GameService {
     this.roomCode = roomCode;
 
     if (this.isConnected) {
-      this.roundState = { status: '', players: [], startTime: null, roundNumber: 0, guessDeadlines: null, currentExpectedGuessCount: 0, nextGuessDeadline: null, guessTimeLimitMs: null, correctAnswer: null, wordLength: 0, maxGuesses: 0 };
+      this.roundState = { status: '', players: [], startTime: null, roundNumber: 0, correctAnswer: null, wordLength: 0, maxGuesses: 0 };
       return;
     }
 
@@ -486,10 +486,6 @@ export interface RoundState {
   players: Player[];
   startTime: string | null;
   roundNumber: number;
-  guessDeadlines: Date[] | null;
-  nextGuessDeadline: Date | null;
-  guessTimeLimitMs: number | null;
-  currentExpectedGuessCount: number;
   correctAnswer: string | null | undefined;
   wordLength: number;
   maxGuesses: number;
@@ -515,6 +511,7 @@ export interface Player {
 
 export interface Board {
   status: string;
+  isFinished: boolean;
   rows: Row[];
   correctLetters: LetterPosition[];
   presentLetters: LetterPosition[];
@@ -529,6 +526,10 @@ export interface Board {
   currentRowPoints: number;
   rank: number;
   isJointRank: boolean;
+  guessDeadlines: Date[] | null;
+  nextGuessDeadline: Date | null;
+  guessTimeLimitMs: number | null;
+  currentExpectedGuessCount: number;
 }
 
 export interface Row {

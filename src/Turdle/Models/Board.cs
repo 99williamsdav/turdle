@@ -1,4 +1,6 @@
-﻿namespace Turdle.Models;
+﻿using Microsoft.AspNetCore.Cors.Infrastructure;
+
+namespace Turdle.Models;
 
 public interface ITile
 {
@@ -34,6 +36,14 @@ public class Board : IBoard<Board.Row, Board.Tile>
 
     public event EventHandler PointsUpdated;
 
+    public TimeSpan? GuessTimeLimit { get; private set; }
+    public double? GuessTimeLimitMs => GuessTimeLimit?.TotalMilliseconds;
+    public DateTime[] GuessDeadlines { get; private set; }
+    public DateTime? NextGuessDeadline { get; private set; }
+    public int CurrentExpectedGuessCount { get; private set; } = GameParameters.FirstExpectedGuess - 1;
+
+    private int _maxGuesses;
+
     public MaskedBoard Mask() => new MaskedBoard
     {
         Rows = _rows.Select(x => x.Mask()).ToArray(),
@@ -43,9 +53,25 @@ public class Board : IBoard<Board.Row, Board.Tile>
         CurrentRowPoints = CurrentRowPointsAdjustments.Sum(x => x.Points),
         Rank = Rank,
         IsJointRank = IsJointRank,
-        CompletionTimeMs = CompletionTimeMs
+        CompletionTimeMs = CompletionTimeMs,
+        GuessDeadlines = GuessDeadlines,
+        GuessTimeLimit = GuessTimeLimit,
+        NextGuessDeadline = NextGuessDeadline,
+        CurrentExpectedGuessCount = CurrentExpectedGuessCount
     };
+
+    public Board()
+    {
+        // for tests to not have to worry about time limits
+    }
     
+    public Board(double guessTimeLimitSeconds, int maxGuesses, DateTime startTime)
+    {
+        _maxGuesses = maxGuesses;
+        GuessTimeLimit = TimeSpan.FromSeconds(guessTimeLimitSeconds);
+        NextGuessDeadline = startTime + GuessTimeLimit.Value;
+        GuessDeadlines = Enumerable.Range(1, maxGuesses).Select(i => startTime + (GuessTimeLimit.Value * i)).ToArray();
+    }
 
     public List<TileError> AddRow(string guess, string correctAnswer, int? playedOrder, int? solvedCount,
         int playerCount, IPointService? pointService = null, (string, int)[]? similarWords = null, 
@@ -122,6 +148,17 @@ public class Board : IBoard<Board.Row, Board.Tile>
         }
 
         return errors;
+    }
+
+    // guess timers are triggered from the room
+    public bool GuessTimerElapsed()
+    {
+        NextGuessDeadline = DateTime.Now + GuessTimeLimit.Value;
+        if (CurrentExpectedGuessCount < _maxGuesses)
+            CurrentExpectedGuessCount++;
+
+        var isSlow = !IsFinished && Rows.Length < CurrentExpectedGuessCount;
+        return isSlow;
     }
 
     public void GiveUp()

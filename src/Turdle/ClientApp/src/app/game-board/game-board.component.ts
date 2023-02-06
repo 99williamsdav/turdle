@@ -18,6 +18,7 @@ export class GameBoardComponent {
   @Input() wordLength!: number;
   @Input() maxGuesses!: number;
   @Input() currentWord: string | undefined;
+  // TODO just take these from board now they're there?
   @Input() guessDeadlines: Date[] | null | undefined;
   @Input() currentExpectedGuessCount: number | undefined;
   @Input() nextGuessDeadline: Date | null | undefined;
@@ -46,9 +47,9 @@ export class GameBoardComponent {
     const pctPerGuess = 100 / 6;
     this.timerSubscription = interval(200).subscribe(x => {
       //console.log('tick');
-      if (this.nextGuessDeadline != null) {
+      if (this.nextGuessDeadline != null && !this.board?.isFinished) {
         let timeRemaining = new Date(this.nextGuessDeadline).getTime() - new Date().getTime();
-        //console.log('timeRemaining=' + timeRemaining);
+        console.log('timeRemaining=' + timeRemaining);
         if (timeRemaining < 0) {
           this.secondsUntilGuessDeadline = 0;
           if (this.guessTimeLimitMs != null && this.currentExpectedGuessCount) {

@@ -17,11 +17,6 @@ public interface IRoundState<out TPlayer, out TBoard, out TRow, out TTile>
     DateTime? StartTime { get; }
     DateTime? EndTime { get; }
     int RoundNumber { get; }
-    DateTime[] GuessDeadlines { get; }
-    TimeSpan? GuessTimeLimit { get; }
-    double? GuessTimeLimitMs { get; }
-    DateTime? NextGuessDeadline { get; }
-    int CurrentExpectedGuessCount { get; }
 }
 
 public class MaskedRoundState : IRoundState<MaskedPlayer, MaskedBoard, MaskedBoard.MaskedRow, MaskedBoard.MaskedTile>
@@ -33,11 +28,6 @@ public class MaskedRoundState : IRoundState<MaskedPlayer, MaskedBoard, MaskedBoa
     public DateTime? StartTime { get; set; }
     public DateTime? EndTime { get; set; }
     public int RoundNumber { get; set; }
-    public DateTime[] GuessDeadlines { get; set; }
-    public TimeSpan? GuessTimeLimit { get; set; }
-    public double? GuessTimeLimitMs => GuessTimeLimit?.TotalMilliseconds;
-    public DateTime? NextGuessDeadline { get; set; }
-    public int CurrentExpectedGuessCount { get; set; }
 }
 
 public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Tile>
@@ -54,12 +44,6 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
     public RoundStatus Status { get; set; } = RoundStatus.Waiting;
     public DateTime? StartTime { get; private set; }
     public DateTime? EndTime { get; private set; }
-    
-    public TimeSpan? GuessTimeLimit { get; private set; }
-    public double? GuessTimeLimitMs => GuessTimeLimit?.TotalMilliseconds;
-    public DateTime[] GuessDeadlines { get; private set; }
-    public DateTime? NextGuessDeadline { get; private set; }
-    public int CurrentExpectedGuessCount { get; private set; } = GameParameters.FirstExpectedGuess - 1;
 
     public Dictionary<string, Board> BoardsByAlias { get; } = new Dictionary<string, Board>();
     
@@ -69,6 +53,8 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
 
     public void SetBoard(string alias, Board board) => BoardsByAlias[alias] = board;
 
+    private double _defaultTimeLimitSeconds;
+
     public InternalRoundState(string correctAnswer, IPointService pointService, GameParameters gameParameters, 
         WordService wordService)
     {
@@ -77,7 +63,7 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
         _wordService = wordService;
         RoundNumber = 1;
         MaxGuesses = gameParameters.MaxGuesses;
-        GuessTimeLimit = TimeSpan.FromSeconds(gameParameters.GuessTimeLimitSeconds);
+        _defaultTimeLimitSeconds = gameParameters.GuessTimeLimitSeconds;
     }
 
     public InternalRoundState(string correctAnswer, IEnumerable<Player> previousPlayers, 
@@ -93,7 +79,7 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
         Status = RoundStatus.Ready;
         RecalculateRanking();
         MaxGuesses = gameParameters.MaxGuesses;
-        GuessTimeLimit = TimeSpan.FromSeconds(gameParameters.GuessTimeLimitSeconds);
+        _defaultTimeLimitSeconds = gameParameters.GuessTimeLimitSeconds;
     }
 
     public Player RemovePlayer(string alias)
@@ -161,18 +147,14 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
         return suggestedGuess;
     }
 
-    public Player[] ForceGuess(WordService wordService)
+    public Player[] ForceGuess(WordService wordService, Player[] players)
     {
-        NextGuessDeadline = DateTime.Now + GuessTimeLimit.Value;
-        if (CurrentExpectedGuessCount < MaxGuesses)
-            CurrentExpectedGuessCount++;
-        
         var suggestedGuessPointCost = _pointService.GetPointCostForSuggestedGuess();
-        var slowPlayers = _players.Where(x => x.Board != null && !x.Board.IsFinished && x.Board.Rows.Length < CurrentExpectedGuessCount).ToArray();
+        var slowPlayers = players.Where(x => x.Board != null && x.Board.GuessTimerElapsed()).ToArray();
         foreach (var player in slowPlayers)
         {
             var suggestedGuess = GetSuggestedGuess(wordService, player.Board);
-            if (CurrentExpectedGuessCount < MaxGuesses && suggestedGuess != null)
+            if (player.Board.Rows.Length < MaxGuesses - 1 && suggestedGuess != null)
             {
                 if (suggestedGuessPointCost != 0)
                     player.Board.AddPointAdjustment(PointAdjustmentReason.GuessSuggested, -suggestedGuessPointCost);
@@ -268,7 +250,7 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
                 Status = RoundStatus.Waiting;
             else if (Status is RoundStatus.Playing or RoundStatus.Finished)
             {
-                player.Board = new Board();
+                player.Board = new Board(_defaultTimeLimitSeconds, MaxGuesses, DateTime.Now);
                 SetBoard(player.Alias, player.Board);
                 player.Board.PointsUpdated += BoardPointsUpdated;
             }
@@ -288,13 +270,11 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
 
         Status = RoundStatus.Starting;
         StartTime = startTime;
-        EndTime = startTime + GuessTimeLimit * MaxGuesses;
-        NextGuessDeadline = startTime + GuessTimeLimit.Value;
-        GuessDeadlines = Enumerable.Range(1, MaxGuesses).Select(i => startTime + (GuessTimeLimit.Value * i)).ToArray();
             
         foreach (var player in _players)
         {
-            player.Board = new Board();
+            // TODO handicap time limit
+            player.Board = new Board(_defaultTimeLimitSeconds, MaxGuesses, startTime);
             SetBoard(player.Alias, player.Board);
             player.Board.PointsUpdated += BoardPointsUpdated;
         }
@@ -305,7 +285,8 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
     public void Finish()
     {
         Status = RoundStatus.Finished;
-        
+        EndTime = DateTime.Now;
+
         foreach (var player in _players)
         {
             player.Points += player.Board?.Points ?? 0;
@@ -337,11 +318,7 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
         MaxGuesses = MaxGuesses,
         StartTime = StartTime,
         EndTime = EndTime,
-        RoundNumber = RoundNumber,
-        GuessDeadlines = GuessDeadlines,
-        GuessTimeLimit = GuessTimeLimit,
-        NextGuessDeadline = NextGuessDeadline,
-        CurrentExpectedGuessCount = CurrentExpectedGuessCount
+        RoundNumber = RoundNumber
     };
 }
 

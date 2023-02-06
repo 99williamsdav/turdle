@@ -128,9 +128,9 @@
       </div>
     </div>
 
-    <game-board [board]="currentBoard" [currentWord]="currentWord" [guessDeadlines]="roundState.guessDeadlines" [wordLength]="roundState.wordLength"
-                [currentExpectedGuessCount]="roundState.currentExpectedGuessCount" [nextGuessDeadline]="roundState.nextGuessDeadline"
-                [guessTimeLimitMs]="roundState.guessTimeLimitMs" [maxGuesses]="roundState.maxGuesses"></game-board>
+    <game-board [board]="currentBoard" [currentWord]="currentWord" [guessDeadlines]="currentBoard.guessDeadlines" [wordLength]="roundState.wordLength"
+                [currentExpectedGuessCount]="currentBoard.currentExpectedGuessCount" [nextGuessDeadline]="currentBoard.nextGuessDeadline"
+                [guessTimeLimitMs]="currentBoard.guessTimeLimitMs" [maxGuesses]="roundState.maxGuesses"></game-board>
 
     <keyboard [currentBoard]="currentBoard" (keyPress)="clickKey($event)"></keyboard>
 

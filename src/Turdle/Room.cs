@@ -38,7 +38,7 @@ public class Room
     private readonly object _stateLock = new object();
     
     private Timer? _startTimer;
-    private Timer? _guessTimer;
+    private List<(Timer Timer, Player[] Players)> _guessTimers = new();
 
     private readonly Func<Task> _roomSummaryUpdatedCallback;
 
@@ -123,6 +123,18 @@ public class Room
             player = _internalRoundState.RegisterPlayer(alias, connectionId, ipAddress);
             _playersByConnectionId[connectionId] = player;
 
+            // make sure player has a timer
+            if (_internalRoundState.Status == RoundStatus.Playing && !_guessTimers.Any(x => x.Players.Contains(player)))
+            {
+                var timeUntilDeadline = player.Board.NextGuessDeadline.Value - DateTime.Now;
+                var timer = new Timer(timeUntilDeadline.TotalMilliseconds);
+                timer.Elapsed +=
+                    async (sender, e) => await GuessDeadlineReached(timer, new[] { player } );
+                timer.Start();
+                _guessTimers.Add((timer, new[] { player }));
+            }
+
+            // make first player admin
             if (_adminConnectionId == null)
             {
                 _adminConnectionId = connectionId;
@@ -326,7 +338,7 @@ public class Room
             _startTimer.Elapsed += async ( sender, e ) => await StartRoundInternal();
             _startTimer.Start();
 
-            _guessTimer?.Stop();
+            _guessTimers.ForEach(x => x.Timer.Stop());
 
             maskedRoundState = _internalRoundState.Mask();
         }
@@ -349,18 +361,34 @@ public class Room
                 _internalRoundState.Status = RoundStatus.Playing;
                 maskedRoundState = _internalRoundState.Mask();
                 _startTimer?.Stop();
-            
-                var timeUntilDeadline = _internalRoundState.GuessDeadlines[0] - DateTime.Now;
-                _guessTimer = new Timer(timeUntilDeadline.TotalMilliseconds);
-                _guessTimer.Elapsed += async ( sender, e ) => await GuessDeadlineReached();
-                _guessTimer.Start();
+
+                // work out player time limit handicaps
+                var playerTimeLimits = _internalRoundState.Players.GroupBy(x => x.Board?.NextGuessDeadline);
+                _guessTimers = playerTimeLimits.Where(grp => grp.Key != null).Select(grp =>
+                {
+                    var players = grp.ToArray();
+                    var timeUntilDeadline = grp.Key.Value - DateTime.Now;
+                    var timer = new Timer(timeUntilDeadline.TotalMilliseconds);
+                    timer.Elapsed += 
+                        async (sender, e) => await GuessDeadlineReached(timer, players);
+                    timer.Start();
+                    return (timer, players);
+                }).ToList();
             }
+
+            _logger.LogInformation($"Broadcasting all initial player boards.");
+            foreach (var player in _internalRoundState.Players)
+            {
+                await _hubContext.Clients.Clients(player.ConnectionId).SendAsync("BoardUpdated", player.Board);
+            }
+            _logger.LogInformation("Finished broadcasting initial player boards.");
+
             await BroadcastRoundState(_internalRoundState, maskedRoundState);
             await _roomSummaryUpdatedCallback();
         }
     }
 
-    private async Task GuessDeadlineReached()
+    private async Task GuessDeadlineReached(Timer timer, Player[] players)
     {
         using (LogContext.Create(_logger, "Timer", "GuessDeadlineReached"))
         {
@@ -370,11 +398,11 @@ public class Room
             {
                 if (_internalRoundState.Status != RoundStatus.Playing)
                 {
-                    _guessTimer?.Stop();
+                    timer.Stop();
                     return;
                 }
             
-                impactedPlayers = _internalRoundState.ForceGuess(_wordService);
+                impactedPlayers = _internalRoundState.ForceGuess(_wordService, players);
                 maskedRoundState = _internalRoundState.Mask();
             }
 

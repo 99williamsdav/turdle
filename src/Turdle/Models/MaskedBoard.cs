@@ -12,6 +12,11 @@ public interface IBoard<out TRow, out TTile>
     bool IsJointRank { get; }
     double? CompletionTimeMs { get; }
     bool IsFinished { get; }
+    DateTime[] GuessDeadlines { get; }
+    TimeSpan? GuessTimeLimit { get; }
+    double? GuessTimeLimitMs { get; }
+    DateTime? NextGuessDeadline { get; }
+    int CurrentExpectedGuessCount { get; }
 }
 
 public interface IRow<out TTile>
@@ -37,6 +42,11 @@ public class MaskedBoard : IBoard<MaskedBoard.MaskedRow, MaskedBoard.MaskedTile>
     public int Rank { get; set; }
     public bool IsJointRank { get; set; }
     public double? CompletionTimeMs { get; set; }
+    public DateTime[] GuessDeadlines { get; set; }
+    public TimeSpan? GuessTimeLimit { get; set; }
+    public double? GuessTimeLimitMs => GuessTimeLimit?.TotalMilliseconds;
+    public DateTime? NextGuessDeadline { get; set; }
+    public int CurrentExpectedGuessCount { get; set; }
 
     public bool IsFinished => Status is BoardStatus.Failed or BoardStatus.Solved;
 
