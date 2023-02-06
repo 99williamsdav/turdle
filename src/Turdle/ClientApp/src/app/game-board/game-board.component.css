@@ -25,7 +25,7 @@ span.solved-order {
   color: goldenrod;
 }
 
-.player-board {
+.player-board,.mini-board {
   position: relative;
 }
 
