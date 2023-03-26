@@ -5,7 +5,7 @@ namespace Turdle.ChatGpt
 {
     public class ChatGptClient
     {
-        private const string ApiKey = "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";
+        private const string ApiKey = "";
         private const string CompletionApiUri = "https://api.openai.com/v1/chat/completions";
         private const string ModelApiUri = "https://api.openai.com/v1/models";
 
