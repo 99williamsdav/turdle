@@ -1,3 +1,4 @@
 ﻿using Turdle.Tools;
 
-ParseEmojiSynonyms.OutputWordEmojis();
+//ParseEmojiSynonyms.OutputWordEmojis();
+GetReasonableWords.ProduceReasonableWordList(6);

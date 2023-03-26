@@ -9,10 +9,30 @@
 
   <ItemGroup>
     <None Remove="Resources\emoji-synonyms.csv" />
+    <None Remove="Resources\Top10kWords.txt" />
+    <None Remove="Resources\Top20kWords.txt" />
+    <None Remove="Resources\_4_ReasonableWords.json" />
+    <None Remove="Resources\_5_ReasonableWords.json" />
+    <None Remove="Resources\_6_ReasonableWords.json" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\emoji-synonyms.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Top10kWords.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\Top20kWords.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\_6_ReasonableWords.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\_4_ReasonableWords.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\_5_ReasonableWords.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
