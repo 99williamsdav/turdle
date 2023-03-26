@@ -10,6 +10,7 @@ public class WordService
 {
     private readonly IDictionary<int, string[]> _possibleAnswers = new Dictionary<int, string[]>();
     private readonly IDictionary<int, string[]> _naughtyWords = new Dictionary<int, string[]>();
+    private readonly IDictionary<int, string[]> _botWords = new Dictionary<int, string[]>();
     private readonly IDictionary<int, HashSet<string>> _acceptedWordsByLength = new Dictionary<int, HashSet<string>>();
     private HashSet<string> _acceptedWords;
     private string[] _possibleWordleAnswers = new string[0];
@@ -31,6 +32,11 @@ public class WordService
             .ToHashSet();
 
         PopulateEmojiWords();
+    }
+
+    public string[] GetDictionary(int wordLength)
+    {
+        return _acceptedWordsByLength[wordLength].ToArray();
     }
 
     public string GetRandomWord(AnswerListType answerListType)
@@ -100,9 +106,12 @@ public class WordService
             return true;
         }
 
-        var validWords = _acceptedWordsByLength[length]
+        var wordList = _botWords[length]; //_acceptedWordsByLength[length]
+
+        var validWords = wordList
             .Where(word => Regex.IsMatch(word, regex))
-            .Where(HasAllPresentLetters).ToArray();
+            .Where(HasAllPresentLetters)
+            .Distinct().ToArray();
         
         return validWords;
     }
@@ -162,6 +171,14 @@ public class WordService
         }
 
         _acceptedWordsByLength[length] = new HashSet<string>(dictionary.Concat(_possibleAnswers[length]).Concat(removedAnswers).Concat(_naughtyWords[length]));
+
+        var reasonableListFilename = $"Turdle.Resources._{length}_ReasonableWords.json";
+        using (Stream stream = assembly.GetManifestResourceStream(reasonableListFilename))
+        using (StreamReader reader = new StreamReader(stream))
+        {
+            string jsonFile = reader.ReadToEnd();
+            _botWords[length] = JsonConvert.DeserializeObject<string[]>(jsonFile).Distinct().ToArray();
+        }
     }
 
     private void PopulateWordleAnswers()

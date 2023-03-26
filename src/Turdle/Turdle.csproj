@@ -36,7 +36,10 @@
     <ItemGroup>
       <Content Remove="Resources\PossibleAnswers.json" />
       <Content Remove="Resources\WordEmojis.json" />
+      <Content Remove="Resources\_4_ReasonableWords.json" />
       <Content Remove="Resources\_5_PossibleWordleAnswers.json" />
+      <Content Remove="Resources\_5_ReasonableWords.json" />
+      <Content Remove="Resources\_6_ReasonableWords.json" />
       <EmbeddedResource Include="Resources\WordEmojis.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </EmbeddedResource>
@@ -46,10 +49,16 @@
       <EmbeddedResource Include="Resources\_4_NaughtyAnswers.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </EmbeddedResource>
+      <EmbeddedResource Include="Resources\_4_ReasonableWords.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </EmbeddedResource>
       <EmbeddedResource Include="Resources\_5_NaughtyAnswers.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </EmbeddedResource>
       <Content Remove="Resources\Dictionary.json" />
+      <EmbeddedResource Include="Resources\_5_ReasonableWords.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </EmbeddedResource>
       <EmbeddedResource Include="Resources\_6_NaughtyAnswers.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </EmbeddedResource>
@@ -81,6 +90,9 @@
       </EmbeddedResource>
       <Content Remove="Resources\_4_PossibleAnswers.json" />
       <EmbeddedResource Include="Resources\_4_PossibleAnswers.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </EmbeddedResource>
+      <EmbeddedResource Include="Resources\_6_ReasonableWords.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </EmbeddedResource>
     </ItemGroup>
