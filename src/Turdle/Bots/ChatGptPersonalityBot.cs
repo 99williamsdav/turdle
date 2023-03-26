@@ -21,6 +21,9 @@ namespace Turdle.Bots
         public async Task<string> SelectOpeningWord(int wordLength)
         {
             var openingWords = await _chatGptService.GetOpeningWordsByPersonality(_personality, wordLength);
+            // is this too limiting?
+            var reasonableBotWords = _wordService.GetReasonableBotWords(wordLength);
+            openingWords = openingWords.Intersect(reasonableBotWords).ToArray();
             var guess = openingWords.PickRandom();
             return guess;
         }
