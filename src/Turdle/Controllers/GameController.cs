@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Turdle.ChatGpt;
 using Turdle.Models;
 using Turdle.Utils;
 using Turdle.ViewModel;
@@ -11,13 +10,11 @@ public class GameController : ControllerBase
 {
     private readonly ILogger<GameController> _logger;
     private readonly RoomManager _roomManager;
-    private readonly ChatGptClient _chatGptClient;
 
-    public GameController(RoomManager roomManager, ILogger<GameController> logger, ChatGptClient chatGptClient)
+    public GameController(RoomManager roomManager, ILogger<GameController> logger)
     {
         _roomManager = roomManager;
         _logger = logger;
-        _chatGptClient = chatGptClient;
     }
 
     [HttpGet]
