@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Turdle;
+using Turdle.Bots;
 using Turdle.ChatGpt;
 using Turdle.Hubs;
 
@@ -44,6 +45,7 @@ builder.Services.AddSingleton<RoomManager>();
 builder.Services.AddSingleton<WordService>();
 builder.Services.AddSingleton<ChatGptClient>();
 builder.Services.AddSingleton<ChatGptService>();
+builder.Services.AddSingleton<BotFactory>();
 builder.Services.AddSingleton<IPointService, PointService>();
 builder.Services.AddSingleton<IWordAnalysisService, WordAnalysisService>();
 
