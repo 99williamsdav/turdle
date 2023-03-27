@@ -1,15 +1,20 @@
-﻿namespace Turdle.Models;
+﻿using Turdle.Bots;
+
+namespace Turdle.Models;
 
 // TODO rename to represent that its scope is per game?
 public class Player : IPlayer<Board, Board.Row, Board.Tile>
 {
     public string Alias { get; set; }
+
+    public IBot? Bot { get; private set; }
+    public bool IsBot => Bot != null;
     
     public int Points { get; set; }
     public int Rank { get; set; } = 1;
     public bool IsJointRank { get; set; } = true;
     public string ConnectionId { get; set; }
-    public string IpAddress { get; set; }
+    public string? IpAddress { get; set; }
     public bool IsConnected { get; set; }
     public DateTime RegisteredAt { get; set; }
     
@@ -25,16 +30,36 @@ public class Player : IPlayer<Board, Board.Row, Board.Tile>
         RegisteredAt = DateTime.Now;
     }
 
+    public Player(string alias, IBot bot)
+    {
+        Alias = alias;
+        Bot = bot;
+        ConnectionId = $"{alias}{Guid.NewGuid()}";
+        IsConnected = true;
+        Ready= true;
+        RegisteredAt = DateTime.Now;
+    }
+
     public Player CopyForNewGame()
     {
-        return new Player(Alias, ConnectionId, IpAddress)
-        {
-            Points = Points,
-            Rank = Rank,
-            IsJointRank = IsJointRank,
-            IsConnected = IsConnected,
-            RegisteredAt = RegisteredAt
-        };
+        return Bot == null
+            ? new Player(Alias, ConnectionId, IpAddress!)
+            {
+                Points = Points,
+                Rank = Rank,
+                IsJointRank = IsJointRank,
+                IsConnected = IsConnected,
+                RegisteredAt = RegisteredAt
+            }
+            : new Player(Alias, Bot)
+            {
+                Points = Points,
+                Rank = Rank,
+                ConnectionId = ConnectionId,
+                IsJointRank = IsJointRank,
+                IsConnected = IsConnected,
+                RegisteredAt = RegisteredAt
+            };
     }
 
     public MaskedPlayer Mask()
@@ -42,6 +67,7 @@ public class Player : IPlayer<Board, Board.Row, Board.Tile>
         return new MaskedPlayer
         {
             Alias = Alias,
+            IsBot = IsBot,
             Points = Points,
             Rank = Rank,
             IsJointRank = IsJointRank,
@@ -59,6 +85,7 @@ public interface IPlayer<out TBoard, out TRow, out TTile>
     where TTile : ITile
 {
     string Alias { get; }
+    bool IsBot { get; }
     int Points { get; }
     int Rank { get; }
     bool IsJointRank { get; }
@@ -71,7 +98,8 @@ public interface IPlayer<out TBoard, out TRow, out TTile>
 public class MaskedPlayer : IPlayer<MaskedBoard, MaskedBoard.MaskedRow, MaskedBoard.MaskedTile>
 {
     public string Alias { get; set; }
-    
+    public bool IsBot { get; set; }
+
     public int Points { get; set; }
     public int Rank { get; set; } = 1;
     public bool IsJointRank { get; set; } = true;

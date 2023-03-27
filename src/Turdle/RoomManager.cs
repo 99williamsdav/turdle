@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR;
+using Turdle.Bots;
 using Turdle.Hubs;
 using Turdle.Models;
 using Turdle.ViewModel;
@@ -18,6 +19,8 @@ public class RoomManager
     private readonly WordService _wordService;
     private readonly IPointService _pointService;
     private readonly IWordAnalysisService _wordAnalyst;
+    private readonly BotFactory _botFactory;
+
     private readonly Board _fakeReadyBoard;
     
     private readonly ConcurrentDictionary<string, object> _homeConnections = new ConcurrentDictionary<string, object>();
@@ -25,8 +28,8 @@ public class RoomManager
 
     private readonly ConcurrentDictionary<string, Room> _rooms = new ConcurrentDictionary<string, Room>();
 
-    public RoomManager(ILogger<RoomManager> logger, IHubContext<GameHub> gameHubContext, IHubContext<AdminHub> adminHubContext, IHubContext<HomeHub> homeHubContext, 
-        WordService wordService, IPointService pointService, IWordAnalysisService wordAnalyst)
+    public RoomManager(ILogger<RoomManager> logger, IHubContext<GameHub> gameHubContext, IHubContext<AdminHub> adminHubContext, IHubContext<HomeHub> homeHubContext,
+        WordService wordService, IPointService pointService, IWordAnalysisService wordAnalyst, BotFactory botFactory)
     {
         _logger = logger;
         _gameHubContext = gameHubContext;
@@ -35,6 +38,7 @@ public class RoomManager
         _pointService = pointService;
         _wordAnalyst = wordAnalyst;
         _homeHubContext = homeHubContext;
+        _botFactory = botFactory;
 
         _fakeReadyBoard = new Board();
         _fakeReadyBoard.AddRow("EVERY", "START", null, null, 1, pointService);
@@ -42,7 +46,7 @@ public class RoomManager
         _fakeReadyBoard.AddRow("SEEMS", "START", null, null, 1, pointService);
         _fakeReadyBoard.AddRow("READY", "START", null, null, 1, pointService);
     }
-    
+
     public async Task<string> CreateRoom(string adminConnectionId)
     {
         var roomCode = "";
@@ -52,7 +56,7 @@ public class RoomManager
         }
 
         var room = new Room(_gameHubContext, _adminHubContext, _wordService, _pointService, _logger, _wordAnalyst,
-            roomCode, BroadcastRooms);
+            roomCode, BroadcastRooms, _botFactory);
         _rooms.TryAdd(roomCode, room);
 
         await BroadcastRooms();

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Turdle.Bots;
 using Turdle.Models.Exceptions;
 using Turdle.Utils;
 
@@ -170,6 +171,18 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
         return slowPlayers;
     }
 
+    public async Task PlayBotGuesses(Func<string, string, int, Task> playGuessCallback)
+    {
+        var bots = Players.Where(x => x.IsBot && x.Board?.IsFinished == false);
+        foreach (var player in bots)
+        {
+            var nextGuess = player.Board!.Rows.Length == 0 
+                ? await player.Bot!.SelectOpeningWord(CorrectAnswer.Length)
+                : await player.Bot!.SelectWord(CorrectAnswer.Length, player.Board!, CorrectAnswer);
+            await playGuessCallback(player.ConnectionId, nextGuess, player.Board!.Rows.Length + 1);
+        }
+    }
+
     private string? GetSuggestedGuess(WordService wordService, Board board)
     {
         var validGuesses = wordService.GetPossibleValidGuesses(board, WordLength).Except(Enumerable.Repeat(CorrectAnswer, 1)).ToArray();
@@ -254,6 +267,23 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
                 SetBoard(player.Alias, player.Board);
                 player.Board.PointsUpdated += BoardPointsUpdated;
             }
+        }
+
+        return player;
+    }
+
+    public Player RegisterBot(IBot bot, string alias)
+    {
+        var player = new Player(alias, bot);
+        _players.Add(player);
+        Players = _players.ToArray();
+        RecalculateRanking();
+
+        if (Status is RoundStatus.Playing or RoundStatus.Finished)
+        {
+            player.Board = new Board(_defaultTimeLimitSeconds, MaxGuesses, DateTime.Now);
+            SetBoard(player.Alias, player.Board);
+            player.Board.PointsUpdated += BoardPointsUpdated;
         }
 
         return player;

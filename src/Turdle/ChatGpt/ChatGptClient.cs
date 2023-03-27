@@ -12,11 +12,13 @@ namespace Turdle.ChatGpt
         private const string Model = "gpt-3.5-turbo";
 
         private readonly HttpClient _httpClient;
+        private readonly ILogger<ChatGptClient> _logger;
 
-        public ChatGptClient()
+        public ChatGptClient(ILogger<ChatGptClient> logger)
         {
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {ApiKey}");
+            _logger = logger;
         }
 
         public async Task<string> GetChatCompletion(string message)
@@ -25,8 +27,13 @@ namespace Turdle.ChatGpt
 
             try
             {
+                var startTime = DateTime.UtcNow;
+
                 var responseJson = await SendRequest(CompletionApiUri, request);
                 var response = JsonConvert.DeserializeObject<ChatCompletionResponse>(responseJson);
+
+                var duration = DateTime.UtcNow - startTime;
+                _logger.LogInformation($"ChatGPT tokens {response.usage.total_tokens}, duration: {duration.TotalMilliseconds:N0}ms");
 
                 var completion = response.choices.Single().message.content;
 

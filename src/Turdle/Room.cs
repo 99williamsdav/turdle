@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR;
+using Turdle.Bots;
 using Turdle.Hubs;
 using Turdle.Models;
 using Turdle.Utils;
@@ -18,6 +19,8 @@ public class Room
     private readonly WordService _wordService;
     private readonly IPointService _pointService;
     private readonly IWordAnalysisService _wordAnalyst;
+    private readonly BotFactory _botFactory;
+
     private readonly DateTime _createdOn = DateTime.Now;
 
     private InternalRoundState _internalRoundState;
@@ -43,13 +46,14 @@ public class Room
     private readonly Func<Task> _roomSummaryUpdatedCallback;
 
     public Room(
-        IHubContext<GameHub> hubContext, IHubContext<AdminHub> adminHubContext, 
-        WordService wordService, 
-        IPointService pointService, 
-        ILogger<RoomManager> logger, 
-        IWordAnalysisService wordAnalyst, 
-        string roomCode, 
-        Func<Task> roomSummaryUpdatedCallback)
+        IHubContext<GameHub> hubContext, IHubContext<AdminHub> adminHubContext,
+        WordService wordService,
+        IPointService pointService,
+        ILogger<RoomManager> logger,
+        IWordAnalysisService wordAnalyst,
+        string roomCode,
+        Func<Task> roomSummaryUpdatedCallback, 
+        BotFactory botFactory)
     {
         _hubContext = hubContext;
         _adminHubContext = adminHubContext;
@@ -62,6 +66,7 @@ public class Room
         _gameParameters = GameParameters.GetDefault();
         // TODO leave null until game has started? 
         _internalRoundState = new InternalRoundState(wordService.GetRandomWord(_gameParameters.AnswerList), _pointService, _gameParameters, _wordService);
+        _botFactory = botFactory;
     }
 
     public RoomSummary ToSummary()
@@ -155,7 +160,41 @@ public class Room
         if (paramsChanged)
             await BroadcastParameters();
         await _roomSummaryUpdatedCallback();
+
+        // TODO replace this with admin option
+        if (_adminConnectionId == connectionId)
+        {
+            var personalities = new[] { "donald trump", "jesus", "a clown", "a child", "karl marx", "shakespeare",
+            "martin luther king", "greta thunberg", "albert einstein", "santa", "a horrible person",
+            "maggie thatcher", "gollum", "david attenborough", "stephen hawking", "homer simpson",
+            "your mum", "your dad", "michael mcintyre" };
+            await AddBot(personalities.PickRandom());
+            await AddBot(personalities.PickRandom());
+            await AddBot(personalities.PickRandom());
+        }
+
         return player;
+    }
+
+    public async Task AddBot(string personality)
+    {
+        Player? player;
+        MaskedRoundState maskedRoundState;
+
+        var bot = _botFactory.CreateBot(new BotParams(BotType.ChatGptPersonality, personality));
+
+        lock (_stateLock)
+        {
+            var existingCount = _internalRoundState.Players.Count(x => x.Alias.Contains(personality));
+            var alias = existingCount > 0 ? $"{personality} {existingCount + 1}" : personality;
+            player = _internalRoundState.RegisterBot(bot, alias);
+            _playersByConnectionId[player.ConnectionId] = player;
+
+            maskedRoundState = _internalRoundState.Mask();
+        }
+
+        await BroadcastRoundState(_internalRoundState, maskedRoundState);
+        await _roomSummaryUpdatedCallback();
     }
 
     public void RegisterAdminConnection(string connectionId)
@@ -344,7 +383,7 @@ public class Room
         }
         
         await BroadcastRoundState(_internalRoundState, maskedRoundState);
-        var allConnections = _internalRoundState.Players.Select(x => x.ConnectionId)
+        var allConnections = _internalRoundState.Players.Where(x => !x.IsBot).Select(x => x.ConnectionId)
             .Concat(_tvConnections.Keys)
             .Concat(_adminConnections.Keys);
         await _hubContext.Clients.Clients(allConnections).SendAsync("StartNewGame", new Board());
@@ -377,7 +416,7 @@ public class Room
             }
 
             _logger.LogInformation($"Broadcasting all initial player boards.");
-            foreach (var player in _internalRoundState.Players)
+            foreach (var player in _internalRoundState.Players.Where(x => !x.IsBot))
             {
                 await _hubContext.Clients.Clients(player.ConnectionId).SendAsync("BoardUpdated", player.Board);
             }
@@ -407,7 +446,7 @@ public class Room
             }
 
             _logger.LogInformation($"Broadcasting {impactedPlayers.Length} updated player boards.");
-            foreach (var player in impactedPlayers)
+            foreach (var player in impactedPlayers.Where(x => !x.IsBot))
             {
                 await _hubContext.Clients.Clients(player.ConnectionId).SendAsync("BoardUpdated", player.Board);
             }
@@ -417,16 +456,31 @@ public class Room
         }
     }
 
+    private void PlayBotGuesses()
+    {
+        var botGuessesTask = Task.Run(async () =>
+        {
+            using (LogContext.Create(_logger, "Bots", "PlayBotGuesses"))
+            {
+                await _internalRoundState.PlayBotGuesses(
+                    async (connectionId, guess, guessNumber) => await PlayGuess(connectionId, guess, guessNumber));
+            }
+        });
+    }
+
     public async Task<Result<Board>> PlayGuess(string connectionId, string guess, int guessNumber)
     {
+        _logger.LogInformation($"PlayGuess({connectionId}, {guess}, {guessNumber})");
+
         if (guess.Length != _internalRoundState.CorrectAnswer.Length)
             return new Result<Board>("Incorrect length");
 
         if (!_wordService.IsWordAccepted(guess))
             return new Result<Board>("Not in word list");
 
-        var similarWords = await _wordAnalyst.GetSimilarWords(guess);
-        
+        var similarWords = new (string, int)[] { };
+        //var similarWords = await _wordAnalyst.GetSimilarWords(guess);
+
         Board board;
         MaskedRoundState maskedRoundState;
         lock (_stateLock)
@@ -437,6 +491,10 @@ public class Room
         }
 
         await BroadcastRoundState(_internalRoundState, maskedRoundState);
+
+        // TODO work out how this should be triggered
+        if (_adminConnectionId == connectionId)
+            PlayBotGuesses();
 
         return new Result<Board>(board);
     }
@@ -517,7 +575,7 @@ public class Room
         var startTime = DateTime.Now;
         if (internalRoundState.Status == RoundStatus.Finished)
         {
-            var allConnections = _internalRoundState.Players.Select(x => x.ConnectionId)
+            var allConnections = _internalRoundState.Players.Where(x => !x.IsBot).Select(x => x.ConnectionId)
                 .Concat(_tvConnections.Keys)
                 .Concat(_adminConnections.Keys)
                 .Concat(additionalConnectionIds);
@@ -526,13 +584,13 @@ public class Room
         }
         
         var completeConnectionIds = _internalRoundState.Players
-            .Where(x => x.Board is { IsFinished: true })
-            .Select(x => x.ConnectionId)
+            .Where(x => x.Board is { IsFinished: true } && !x.IsBot)
+            .Select(x => x.ConnectionId!)
             .Concat(_adminConnections.Keys)
             .ToArray();
         var maskedConnectionIds = _internalRoundState.Players
-            .Where(x => x.Board is not { IsFinished: true })
-            .Select(x => x.ConnectionId)
+            .Where(x => x.Board is not { IsFinished: true } && !x.IsBot)
+            .Select(x => x.ConnectionId!)
             .Concat(_tvConnections.Keys)
             .Concat(additionalConnectionIds)
             .ToArray();
@@ -545,7 +603,7 @@ public class Room
     {
         _logger.LogInformation("Broadcasting parameters.");
         var startTime = DateTime.Now;
-        var allConnections = _internalRoundState.Players.Select(x => x.ConnectionId)
+        var allConnections = _internalRoundState.Players.Where(x => !x.IsBot).Select(x => x.ConnectionId)
             .Concat(_tvConnections.Keys)
             .Concat(_adminConnections.Keys);
         await _hubContext.Clients.Clients(allConnections).SendAsync("GameParametersUpdated", _gameParameters);
