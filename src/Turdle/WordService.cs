@@ -179,7 +179,9 @@ public class WordService
         using (StreamReader reader = new StreamReader(stream))
         {
             string jsonFile = reader.ReadToEnd();
-            _botWords[length] = JsonConvert.DeserializeObject<string[]>(jsonFile).Distinct().ToArray();
+            var botWords = JsonConvert.DeserializeObject<string[]>(jsonFile).Distinct().ToArray();
+            var nonsenseBotWords = botWords.Except(dictionary).ToArray();
+            _botWords[length] = botWords.Intersect(dictionary).ToArray();
         }
     }
 

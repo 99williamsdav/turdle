@@ -512,6 +512,8 @@ public class Room
     {
         await Task.Delay(delay);
         var result = await PlayGuess(player.ConnectionId, guess, guessNumber);
+        if (!result.IsSuccess)
+            throw new Exception($"PlayGuess failed with error: {result.ErrorMessage}");
         if (result.Response.IsFinished)
             return;
 
