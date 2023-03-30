@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace Turdle.Tests
         private readonly WordService _wordService;
         public Sandbox()
         {
-            _chatGptClient = new ChatGptClient(Mock.Of<ILogger<ChatGptClient>>());
+            _chatGptClient = new ChatGptClient(Mock.Of<ILogger<ChatGptClient>>(), Mock.Of<IOptions<ChatGptSettings>>());
             _chatGptService = new ChatGptService(_chatGptClient, Mock.Of<ILogger<ChatGptService>>());
             _wordService = new WordService();
         }
