@@ -1,11 +1,11 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System.Web;
 
 namespace Turdle.ChatGpt
 {
     public class ChatGptClient
     {
-        private const string ApiKey = "";
         private const string CompletionApiUri = "https://api.openai.com/v1/chat/completions";
         private const string ModelApiUri = "https://api.openai.com/v1/models";
 
@@ -15,11 +15,13 @@ namespace Turdle.ChatGpt
 
         private readonly HttpClient _httpClient;
         private readonly ILogger<ChatGptClient> _logger;
+        private readonly ChatGptSettings _settings;
 
-        public ChatGptClient(ILogger<ChatGptClient> logger)
+        public ChatGptClient(ILogger<ChatGptClient> logger, IOptions<ChatGptSettings> settings)
         {
+            _settings = settings.Value;
             _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {ApiKey}");
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_settings.ApiKey}");
             _logger = logger;
         }
 
@@ -82,5 +84,10 @@ namespace Turdle.ChatGpt
         private record Usage(int prompt_tokens, int completion_tokens, int total_tokens);
 
         private record Choice(ChatMessage message);
+    }
+
+    public class ChatGptSettings
+    {
+        public string ApiKey { get; set; }
     }
 }

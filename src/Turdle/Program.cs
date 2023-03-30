@@ -1,3 +1,4 @@
+using System.Configuration;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Turdle;
@@ -48,6 +49,9 @@ builder.Services.AddSingleton<ChatGptService>();
 builder.Services.AddSingleton<BotFactory>();
 builder.Services.AddSingleton<IPointService, PointService>();
 builder.Services.AddSingleton<IWordAnalysisService, WordAnalysisService>();
+
+// config
+builder.Services.Configure<ChatGptSettings>(builder.Configuration.GetSection("ChatGpt"));
 
 var app = builder.Build();
 
