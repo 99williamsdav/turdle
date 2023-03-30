@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR;
 using Turdle.Bots;
+using Turdle.ChatGpt;
 using Turdle.Hubs;
 using Turdle.Models;
 using Turdle.Utils;
@@ -20,6 +21,7 @@ public class Room
     private readonly IPointService _pointService;
     private readonly IWordAnalysisService _wordAnalyst;
     private readonly BotFactory _botFactory;
+    private readonly ChatGptService _chatGptService;
 
     private readonly DateTime _createdOn = DateTime.Now;
 
@@ -52,8 +54,9 @@ public class Room
         ILogger<RoomManager> logger,
         IWordAnalysisService wordAnalyst,
         string roomCode,
-        Func<Task> roomSummaryUpdatedCallback, 
-        BotFactory botFactory)
+        Func<Task> roomSummaryUpdatedCallback,
+        BotFactory botFactory, 
+        ChatGptService chatGptService)
     {
         _hubContext = hubContext;
         _adminHubContext = adminHubContext;
@@ -67,6 +70,7 @@ public class Room
         // TODO leave null until game has started? 
         _internalRoundState = new InternalRoundState(wordService.GetRandomWord(_gameParameters.AnswerList), _pointService, _gameParameters, _wordService);
         _botFactory = botFactory;
+        _chatGptService = chatGptService;
     }
 
     public RoomSummary ToSummary()
@@ -167,7 +171,13 @@ public class Room
             var personalities = new[] { "donald trump", "jesus", "a clown", "a child", "karl marx", "shakespeare",
             "martin luther king", "greta thunberg", "albert einstein", "santa", "a horrible person",
             "maggie thatcher", "gollum", "david attenborough", "stephen hawking", "homer simpson",
-            "your mum", "your dad", "michael mcintyre" };
+            "your mum", "your dad", "michael mcintyre", "dwight schrute", "poirot", "dracula", "satan" };
+            var personality1 = personalities.PickRandom();
+            await AddBot(personality1);
+            var personality2 = personalities.PickRandom();
+            await AddBot(personality2);
+            var personality3 = personalities.PickRandom();
+            await AddBot(personality3);
             await AddBot(personalities.PickRandom());
             await AddBot(personalities.PickRandom());
             await AddBot(personalities.PickRandom());
@@ -176,12 +186,13 @@ public class Room
         return player;
     }
 
-    public async Task AddBot(string personality)
+    public async Task<Player> AddBot(string personality)
     {
         Player? player;
         MaskedRoundState maskedRoundState;
 
         var bot = _botFactory.CreateBot(new BotParams(BotType.ChatGptPersonality, personality));
+        //var smackTalk = await bot.GetSmackTalk();
 
         lock (_stateLock)
         {
@@ -195,6 +206,22 @@ public class Room
 
         await BroadcastRoundState(_internalRoundState, maskedRoundState);
         await _roomSummaryUpdatedCallback();
+
+        Task.Run(async () =>
+        {
+            try
+            {
+
+                await bot.Init();
+                await ToggleReady(true, player.ConnectionId);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Error initialising bot {player.Alias}");
+            }
+        });
+
+        return player;
     }
 
     public void RegisterAdminConnection(string connectionId)
@@ -415,6 +442,8 @@ public class Room
                 }).ToList();
             }
 
+            InitBotGuesses();
+
             _logger.LogInformation($"Broadcasting all initial player boards.");
             foreach (var player in _internalRoundState.Players.Where(x => !x.IsBot))
             {
@@ -456,16 +485,38 @@ public class Room
         }
     }
 
-    private void PlayBotGuesses()
+    private void InitBotGuesses()
     {
-        var botGuessesTask = Task.Run(async () =>
+        using (LogContext.Create(_logger, "Bots", "PlayBotGuesses"))
         {
-            using (LogContext.Create(_logger, "Bots", "PlayBotGuesses"))
+            var bots = _internalRoundState.Players.Where(x => x.IsBot && x.Board?.IsFinished == false).ToArray();
+            foreach (var player in bots)
             {
-                await _internalRoundState.PlayBotGuesses(
-                    async (connectionId, guess, guessNumber) => await PlayGuess(connectionId, guess, guessNumber));
+                var botGuessTask = Task.Run(async () =>
+                {
+                    try
+                    {
+                        var (guess, guessNumber, delay) = await _internalRoundState.GetBotGuess(player);
+                        await PlayDelayedBotGuess(player, guess, guessNumber, delay);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogError(e, $"Error on bot guess thread {player.Alias}");
+                    }
+                });
             }
-        });
+        }
+    }
+
+    private async Task PlayDelayedBotGuess(Player player, string guess, int guessNumber, TimeSpan delay)
+    {
+        await Task.Delay(delay);
+        var result = await PlayGuess(player.ConnectionId, guess, guessNumber);
+        if (result.Response.IsFinished)
+            return;
+
+        var (nextGuess, nextGuessNumber, nextDelay) = await _internalRoundState.GetBotGuess(player);
+        await PlayDelayedBotGuess(player, nextGuess, nextGuessNumber, nextDelay);
     }
 
     public async Task<Result<Board>> PlayGuess(string connectionId, string guess, int guessNumber)
@@ -491,10 +542,6 @@ public class Room
         }
 
         await BroadcastRoundState(_internalRoundState, maskedRoundState);
-
-        // TODO work out how this should be triggered
-        if (_adminConnectionId == connectionId)
-            PlayBotGuesses();
 
         return new Result<Board>(board);
     }

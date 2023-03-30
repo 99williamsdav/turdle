@@ -17,7 +17,7 @@ namespace Turdle.Tests
         private readonly WordService _wordService;
         public Sandbox()
         {
-            _chatGptClient = new ChatGptClient();
+            _chatGptClient = new ChatGptClient(Mock.Of<ILogger<ChatGptClient>>());
             _chatGptService = new ChatGptService(_chatGptClient, Mock.Of<ILogger<ChatGptService>>());
             _wordService = new WordService();
         }
@@ -26,8 +26,9 @@ namespace Turdle.Tests
         public async Task Go()
         {
             var answerListType = AnswerListType.FiveLetterEasy;
-            var personality = "Donald Trump";
+            var personality = "homer simpson";
             var bot = new ChatGptPersonalityBot(personality, _chatGptService, _wordService);
+            //var smackTalk = await bot.GetSmackTalk();
 
             var correctAnswer = _wordService.GetRandomWord(answerListType);
             var wordLength = correctAnswer.Length;
@@ -39,7 +40,7 @@ namespace Turdle.Tests
 
             while (!board.IsFinished)
             {
-                var nextGuess = await bot.SelectWord(wordLength, board, correctAnswer);
+                var (nextGuess, speed) = await bot.SelectWord(wordLength, board, correctAnswer);
                 board.AddRow(nextGuess, correctAnswer, 1, 0, 1, null);
             }
         }

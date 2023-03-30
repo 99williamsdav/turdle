@@ -36,7 +36,6 @@ public class Player : IPlayer<Board, Board.Row, Board.Tile>
         Bot = bot;
         ConnectionId = $"{alias}{Guid.NewGuid()}";
         IsConnected = true;
-        Ready= true;
         RegisteredAt = DateTime.Now;
     }
 

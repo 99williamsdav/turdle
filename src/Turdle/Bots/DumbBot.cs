@@ -18,7 +18,7 @@ namespace Turdle.Bots
             return Task.FromResult(options.PickRandom());
         }
 
-        public Task<string> SelectWord(int wordLength, Board board, string? correctAnswer)
+        public Task<(string Word, double Speed)> SelectWord(int wordLength, Board board, string? correctAnswer)
         {
             var options =
                 _wordService.GetPossibleValidGuesses(board.CorrectLetters, board.PresentLetters, board.AbsentLetters, board.PresentLetterCounts, wordLength);
@@ -26,7 +26,14 @@ namespace Turdle.Bots
             if (correctAnswer != null && !options.Contains(correctAnswer))
                 options = options.Append(correctAnswer).ToArray();
 
-            return Task.FromResult(options.PickRandom());
+            return Task.FromResult((options.PickRandom(), 0.5));
         }
+
+        public Task<string?> GetSmackTalk()
+        {
+            return Task.FromResult<string?>(null);
+        }
+
+        public Task Init() => Task.CompletedTask;
     }
 }

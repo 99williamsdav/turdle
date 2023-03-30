@@ -9,6 +9,8 @@ namespace Turdle.ChatGpt
         private const string CompletionApiUri = "https://api.openai.com/v1/chat/completions";
         private const string ModelApiUri = "https://api.openai.com/v1/models";
 
+        private const decimal DollarsPerToken = 0.002m / 1000;
+
         private const string Model = "gpt-3.5-turbo";
 
         private readonly HttpClient _httpClient;
@@ -23,17 +25,19 @@ namespace Turdle.ChatGpt
 
         public async Task<string> GetChatCompletion(string message)
         {
-            var request = new ChatCompletionRequest(Model, new[] { new ChatMessage("user", message) });
+            var request = new ChatCompletionRequest(Model, new[] { new ChatMessage("user", message) }, 0.5);
 
             try
             {
+                _logger.LogInformation($"Calling ChatGPT with prompt: {message.Substring(0, 20)}...");
                 var startTime = DateTime.UtcNow;
 
                 var responseJson = await SendRequest(CompletionApiUri, request);
                 var response = JsonConvert.DeserializeObject<ChatCompletionResponse>(responseJson);
 
                 var duration = DateTime.UtcNow - startTime;
-                _logger.LogInformation($"ChatGPT tokens {response.usage.total_tokens}, duration: {duration.TotalMilliseconds:N0}ms");
+                var price = DollarsPerToken * response.usage.total_tokens;
+                _logger.LogInformation($"ChatGPT tokens {response.usage.total_tokens} (${price:N4}), duration: {duration.TotalMilliseconds:N0}ms");
 
                 var completion = response.choices.Single().message.content;
 
@@ -69,7 +73,7 @@ namespace Turdle.ChatGpt
             return responseContent;
         }
 
-        private record ChatCompletionRequest(string model, ChatMessage[] messages);
+        private record ChatCompletionRequest(string model, ChatMessage[] messages, double temperature = 1);
 
         private record ChatMessage(string role, string content);
 
