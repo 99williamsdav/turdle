@@ -30,6 +30,13 @@
             </button>
           </td>
         </tr>
+        <tr *ngIf="gameParams?.adminAlias != null && gameParams!.adminAlias == currentPlayer?.alias">
+          <td>
+            <button class="btn btn-sm btn-info unselectable" (click)="addBot(null)">
+              Add Bot
+            </button>
+          </td>
+        </tr>
         </tbody>
       </table>
     </div>

@@ -13,7 +13,12 @@ namespace Turdle;
 public class Room
 {
     private const int StartCountdownSeconds = 5;
-    
+
+    private static string[] _botPersonalities = new[] { "donald trump", "jesus", "a clown", "a child", "karl marx", 
+        "shakespeare", "martin luther king", "greta thunberg", "albert einstein", "santa", "a horrible person",
+        "maggie thatcher", "gollum", "david attenborough", "stephen hawking", "homer simpson",
+        "your mum", "your dad", "michael mcintyre", "dwight schrute", "poirot", "dracula", "satan", "a pervert" };
+
     private readonly ILogger<RoomManager> _logger;
     private readonly IHubContext<GameHub> _hubContext;
     private readonly IHubContext<AdminHub> _adminHubContext;
@@ -168,26 +173,27 @@ public class Room
         // TODO replace this with admin option
         if (_adminConnectionId == connectionId)
         {
-            var personalities = new[] { "donald trump", "jesus", "a clown", "a child", "karl marx", "shakespeare",
-            "martin luther king", "greta thunberg", "albert einstein", "santa", "a horrible person",
-            "maggie thatcher", "gollum", "david attenborough", "stephen hawking", "homer simpson",
-            "your mum", "your dad", "michael mcintyre", "dwight schrute", "poirot", "dracula", "satan" };
-            var personality1 = personalities.PickRandom();
-            await AddBot(personality1);
-            var personality2 = personalities.PickRandom();
-            await AddBot(personality2);
-            var personality3 = personalities.PickRandom();
-            await AddBot(personality3);
-            await AddBot(personalities.PickRandom());
-            await AddBot(personalities.PickRandom());
-            await AddBot(personalities.PickRandom());
+            //var personality1 = _botPersonalities.PickRandom();
+            //await AddBot(connectionId, personality1);
+            //var personality2 = _botPersonalities.PickRandom();
+            //await AddBot(connectionId, personality2);
+            //var personality3 = _botPersonalities.PickRandom();
+            //await AddBot(connectionId, personality3);
+            //await AddBot(connectionId, _botPersonalities.PickRandom());
+            //await AddBot(connectionId, _botPersonalities.PickRandom());
+            //await AddBot(connectionId, _botPersonalities.PickRandom());
         }
 
         return player;
     }
 
-    public async Task<Player> AddBot(string personality)
+    public async Task<Player> AddBot(string connectionId, string? personality)
     {
+        if (connectionId != _adminConnectionId && !_adminConnections.ContainsKey(connectionId))
+            throw new InvalidOperationException("Connection does not have permission to change parameters.");
+
+        personality ??= _botPersonalities.PickRandom();
+
         Player? player;
         MaskedRoundState maskedRoundState;
 

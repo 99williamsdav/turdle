@@ -191,6 +191,15 @@ public class GameHub : Hub
         }
     }
 
+    public async Task AddBot(string roomCode, string? personality)
+    {
+        using (LogContext.Create(_logger, Context.ConnectionId, "AddBot"))
+        {
+            await _roomManager.GetRoom(roomCode)
+                .AddBot(Context.ConnectionId, personality);
+        }
+    }
+
     public async Task UpdateMaxGuesses(string roomCode, int maxGuesses)
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "UpdateMaxGuesses"))

@@ -457,6 +457,16 @@ export class GameService {
     }
   }
 
+  public async addBot(personality: string | null): Promise<void> {
+    if (this.hubConnection == null)
+      return;
+    try {
+      await this.hubConnection.invoke('AddBot', this.roomCode, personality);
+    } catch (e) {
+      console.log('Error adding bot: ' + e);
+    }
+  }
+
   public async updateMaxGuesses(maxGuesses: number): Promise<void> {
     if (this.hubConnection == null)
       return;

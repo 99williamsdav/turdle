@@ -128,6 +128,10 @@ export class GameComponent {
       this.toastService.default(e.message);
     }
   }
+
+  public async addBot(personality: string | null): Promise<void> {
+    await this.gameService.addBot(personality);
+  }
   public openGameParams(): void {
     const modalRef = this.modalService.open(GameParamsComponent);
     modalRef.componentInstance.gameParams = this.gameParams;
