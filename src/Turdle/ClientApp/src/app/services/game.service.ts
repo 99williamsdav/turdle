@@ -23,6 +23,7 @@ export class GameService {
   //public previousAliasInfo: AliasInfo | null = null;
   private countdownTimerSubscription: Subscription | null = null;
   public pings: Date[] = [];
+  public chatMessages: ChatMessage[] = [];
   private hubConnection: signalR.HubConnection | null = null;
   private _onHubConnected: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public onHubConnected: Observable<boolean> = this._onHubConnected.asObservable();
@@ -99,6 +100,13 @@ export class GameService {
         this.hydrateKnownWords();
       });
     });
+
+    this.hubConnection?.on('ChatMessageReceived', (chatMessage: ChatMessage) => {
+      this.ngZone.run(() => {
+        // TODO dedupe
+        this.chatMessages.push(chatMessage);
+      });
+    });
   }
 
   public async initGameData(): Promise<void> {
@@ -115,6 +123,12 @@ export class GameService {
     this.http.get<GameParameters>(this.baseUrl + 'getgameparameters', { params: new HttpParams().set('roomCode', this.roomCode) })
       .subscribe(async result => {
         this.gameParams = result;
+      }, error => console.error(error));
+
+    this.http.get<ChatMessage[]>(this.baseUrl + 'getchatmessages', { params: new HttpParams().set('roomCode', this.roomCode) })
+      .subscribe(async result => {
+        // TODO merge with any already received?
+        this.chatMessages = result;
       }, error => console.error(error));
 
     this.http.get<Board>(this.baseUrl + 'getfakereadyboard').subscribe(async result => {
@@ -598,12 +612,18 @@ export interface PointSchedule {
 }
 
 export interface Room {
-  createdOn : Date;
+  createdOn: Date;
   roomCode: string;
   players: Player[];
   adminAlias: string;
   roundNumber: number;
   currentRoundStatus: string;
+}
+
+export interface ChatMessage {
+  alias: string;
+  timestamp: Date;
+  message: string;
 }
 
 export interface GameParameters {

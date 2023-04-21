@@ -11,6 +11,7 @@ const PROXY_CONFIG = [
       "/getrooms",
       "/getpreviousalias",
       "/getpointschedule",
+      "/getchatmessages",
       "/getfakereadyboard",
       "/img"
    ],

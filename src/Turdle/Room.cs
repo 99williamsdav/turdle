@@ -37,6 +37,7 @@ public class Room
 
     private List<InternalRoundState> _previousRoundStates = new List<InternalRoundState>();
     private List<string> _usedBotPersonalities = new List<string>();
+    private List<ChatMessage> _chatMessages = new List<ChatMessage>();
 
     // TODO have this a mapping to alias only (shouldn't be handling players or boards here)
     private readonly ConcurrentDictionary<string, Player> _playersByConnectionId =
@@ -49,7 +50,8 @@ public class Room
     private readonly string _roomCode;
 
     private readonly object _stateLock = new object();
-    
+    private readonly object _chatLock = new object();
+
     private Timer? _startTimer;
     private List<(Timer Timer, Player[] Players)> _guessTimers = new();
 
@@ -228,6 +230,9 @@ public class Room
             {
                 await bot.Init();
                 await ToggleReady(true, player.ConnectionId);
+                var smackTalk = await bot.GetSmackTalk();
+                if (smackTalk != null)
+                    await SendChat(player.ConnectionId, smackTalk);
             }
             catch (Exception e)
             {
@@ -698,4 +703,26 @@ public class Room
 
         await BroadcastParameters();
     }
+
+    public async Task SendChat(string connectionId, string message)
+    {
+        if (!_playersByConnectionId.TryGetValue(connectionId, out var player))
+        {
+            throw new HubException("Unrecognised connection");
+        }
+
+        var chatMessage = new ChatMessage(player.Alias, DateTime.Now, message);
+
+        lock (_chatLock) 
+        {
+            _chatMessages.Add(chatMessage);
+        }
+
+        var allConnections = _internalRoundState.Players.Where(x => !x.IsBot).Select(x => x.ConnectionId)
+            .Concat(_tvConnections.Keys)
+            .Concat(_adminConnections.Keys);
+        await _hubContext.Clients.Clients(allConnections).SendAsync("ChatMessageReceived", chatMessage);
+    }
+
+    public ChatMessage[] GetChatMessages() => _chatMessages.ToArray();
 }

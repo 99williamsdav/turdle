@@ -48,6 +48,16 @@ public class GameController : ControllerBase
     }
 
     [HttpGet]
+    [Route("GetChatMessages")]
+    public ChatMessage[] GetChatMessages(string roomCode)
+    {
+        using (LogContext.Create(_logger, "API", "GetChatMessages"))
+        {
+            return _roomManager.GetRoom(roomCode).GetChatMessages();
+        }
+    }
+
+    [HttpGet]
     [Route("GetFakeReadyBoard")]
     public Board GetFakeReadyBoard()
     {

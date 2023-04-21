@@ -208,4 +208,13 @@ public class GameHub : Hub
                 .UpdateGameParameters(Context.ConnectionId, param => param.MaxGuesses = maxGuesses);
         }
     }
+
+    public async Task SendChat(string roomCode, string message)
+    {
+        using (LogContext.Create(_logger, Context.ConnectionId, "SendChat"))
+        {
+            await _roomManager.GetRoom(roomCode)
+                .SendChat(Context.ConnectionId, message);
+        }
+    }
 }

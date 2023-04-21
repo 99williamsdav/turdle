@@ -1,5 +1,5 @@
 import {Component, HostListener, Inject, Pipe, PipeTransform} from '@angular/core';
-import {Board, GameService, RoundState, Player, Row, PointSchedule, GameParameters} from "../services/game.service";
+import {Board, GameService, RoundState, Player, Row, PointSchedule, GameParameters, ChatMessage} from "../services/game.service";
 import {ActivatedRoute, Router} from '@angular/router'
 import {OrderByPipe} from "../order-by.pipe";
 import TrackByUtils from "../track-by.utils";
@@ -194,6 +194,9 @@ export class GameComponent {
   }
   get currentUrl(): string {
     return window.location.href;
+  }
+  get chatMessages(): ChatMessage[] {
+    return this.gameService.chatMessages;
   }
 
   // UTILS

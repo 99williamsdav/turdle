@@ -9,7 +9,7 @@
         <span (click)="copyUrl()">🔗</span>
       </h2>
       <h1 id="tableLabel">Players</h1>
-      <table class='table table' aria-labelledby="tableLabel">
+      <table class='table' aria-labelledby="tableLabel">
         <tbody>
         <tr *ngFor="let player of roundState.players; trackBy: trackByUtils.trackByPlayer">
           <td *ngIf="player.alias != currentPlayer?.alias">{{ player.alias }}</td>
@@ -65,11 +65,20 @@
     </div>
 
     <div class="col-md-4" *ngIf="currentPlayer">
-      <div *ngIf="roundState.status == 'Waiting' && currentPlayer?.ready">
-        <h3>Waiting for others</h3>
+      <div *ngIf="roundState.status == 'Waiting'">
+        <h3 *ngIf="currentPlayer?.ready">Waiting for others</h3>
+        <h3>Chat</h3>
+        <table class="table">
+          <tbody>
+            <tr *ngFor="let chatMessage of chatMessages">
+              <th>{{ chatMessage.alias }}</th>
+              <td>{{ chatMessage.message }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       <div *ngIf="roundState.status == 'Ready'">
-<!--        <button class="btn btn-success" (click)="startGame()">Start!</button>-->
+        <!--        <button class="btn btn-success" (click)="startGame()">Start!</button>-->
         <game-board *ngIf="fakeReadyGameBoard != null" [board]="fakeReadyGameBoard" [currentWord]="fakeReadyGameWord" [wordLength]="5" [maxGuesses]="6"></game-board>
         <keyboard *ngIf="fakeReadyGameBoard != null" [currentBoard]="fakeReadyGameBoard" (keyPress)="clickFakeReadyKey($event)"></keyboard>
       </div>
