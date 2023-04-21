@@ -32,7 +32,8 @@
         </tr>
         <tr *ngIf="gameParams?.adminAlias != null && gameParams!.adminAlias == currentPlayer?.alias">
           <td colspan="2">
-            <input type="text" class="form-control" placeholder="random" [(ngModel)]="botPersonality"/>
+            <input type="text" class="form-control" placeholder="random"
+                   [(ngModel)]="botPersonality" (keyup.enter)="addBot(botPersonality)"/>
           </td>
           <td colspan="2">
             <button class="btn btn-sm btn-info unselectable" (click)="addBot(botPersonality)">
