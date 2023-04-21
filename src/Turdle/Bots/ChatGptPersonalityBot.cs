@@ -36,6 +36,10 @@ namespace Turdle.Bots
                 if (openingWords.Length > 0)
                 {
                     var guess = openingWords.PickRandom();
+                    if (guess.ToLower() == "sorry")
+                    {
+                        // what is going on?
+                    }
                     return guess;
                 }
             }

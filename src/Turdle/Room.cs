@@ -17,7 +17,9 @@ public class Room
     private static string[] _botPersonalities = new[] { "donald trump", "jesus", "a clown", "a child", "karl marx", 
         "shakespeare", "martin luther king", "greta thunberg", "albert einstein", "santa", "a horrible person",
         "maggie thatcher", "gollum", "david attenborough", "stephen hawking", "homer simpson",
-        "your mum", "your dad", "michael mcintyre", "dwight schrute", "poirot", "dracula", "satan", "a pervert" };
+        "your mum", "your dad", "michael mcintyre", "a farmer", "poirot", "dracula", "satan", "a pervert",
+        "cardi b", "churchill", "dr dre", "taylor swift", "jack the ripper", "elon musk", "bill gates", "nigel farage",
+        "boris johnson", "the king", "an alcoholic", "pablo escobar", "lara croft", "a pirate", "gandhi", "freud" };
 
     private readonly ILogger<RoomManager> _logger;
     private readonly IHubContext<GameHub> _hubContext;
@@ -34,6 +36,7 @@ public class Room
     private GameParameters _gameParameters;
 
     private List<InternalRoundState> _previousRoundStates = new List<InternalRoundState>();
+    private List<string> _usedBotPersonalities = new List<string>();
 
     // TODO have this a mapping to alias only (shouldn't be handling players or boards here)
     private readonly ConcurrentDictionary<string, Player> _playersByConnectionId =
@@ -140,7 +143,7 @@ public class Room
             // make sure player has a timer
             if (_internalRoundState.Status == RoundStatus.Playing && !_guessTimers.Any(x => x.Players.Contains(player)))
             {
-                var timeUntilDeadline = player.Board.NextGuessDeadline.Value - DateTime.Now;
+                var timeUntilDeadline = player.Board!.NextGuessDeadline!.Value - DateTime.Now;
                 var timer = new Timer(timeUntilDeadline.TotalMilliseconds);
                 timer.Elapsed +=
                     async (sender, e) => await GuessDeadlineReached(timer, new[] { player } );
@@ -192,16 +195,22 @@ public class Room
         if (connectionId != _adminConnectionId && !_adminConnections.ContainsKey(connectionId))
             throw new InvalidOperationException("Connection does not have permission to change parameters.");
 
-        personality ??= _botPersonalities.PickRandom();
-
+        IBot bot;
         Player? player;
         MaskedRoundState maskedRoundState;
 
-        var bot = _botFactory.CreateBot(new BotParams(BotType.ChatGptPersonality, personality));
-        //var smackTalk = await bot.GetSmackTalk();
-
         lock (_stateLock)
         {
+            if (string.IsNullOrEmpty(personality))
+            {
+                var unchosenPersonalities = _botPersonalities.Except(_usedBotPersonalities).ToArray();
+                personality = unchosenPersonalities.PickRandom();
+            }
+
+            _usedBotPersonalities.Add(personality);
+            bot = _botFactory.CreateBot(new BotParams(BotType.ChatGptPersonality, personality));
+            //var smackTalk = await bot.GetSmackTalk();
+
             var existingCount = _internalRoundState.Players.Count(x => x.Alias.Contains(personality));
             var alias = existingCount > 0 ? $"{personality} {existingCount + 1}" : personality;
             player = _internalRoundState.RegisterBot(bot, alias);
@@ -217,7 +226,6 @@ public class Room
         {
             try
             {
-
                 await bot.Init();
                 await ToggleReady(true, player.ConnectionId);
             }

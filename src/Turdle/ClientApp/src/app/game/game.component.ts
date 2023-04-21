@@ -17,6 +17,7 @@ import { AdminService } from '../services/admin.service';
 export class GameComponent {
   public innerWidth: number | null = null;
   public isSmallScreen: boolean = false;
+  public botPersonality: string = '';
   aliasForm = this.fb.group({
     Alias: ['', Validators.required]
   });
@@ -131,6 +132,7 @@ export class GameComponent {
 
   public async addBot(personality: string | null): Promise<void> {
     await this.gameService.addBot(personality);
+    this.botPersonality = '';
   }
   public openGameParams(): void {
     const modalRef = this.modalService.open(GameParamsComponent);
