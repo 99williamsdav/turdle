@@ -12,6 +12,7 @@
           <th>Code</th>
           <th>Started</th>
           <th>Players</th>
+          <th>Bots</th>
           <th>Admin</th>
           <th>Round</th>
           <th>Current Status</th>
@@ -22,7 +23,8 @@
         <tr *ngFor="let room of rooms" (click)="selectRoom(room.roomCode)" [ngClass]="{ 'selected': roomCode == room.roomCode }">
           <th>{{ room.roomCode }}</th>
           <td>{{ room.createdOn | date:'dd/MM HH:mm' }}</td>
-          <td>{{ room.players.length }}</td>
+          <td>{{ getPlayerCount(room.players, false) }}</td>
+          <td>{{ getPlayerCount(room.players, true) }}</td>
           <td>{{ room.adminAlias }}</td>
           <td>{{ room.roundNumber }}</td>
           <td>{{ room.currentRoundStatus }}</td>

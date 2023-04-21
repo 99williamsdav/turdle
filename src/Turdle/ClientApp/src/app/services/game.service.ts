@@ -517,6 +517,7 @@ export interface Player {
   board: Board | null;
   joinedOn: string;
   registeredAt: string;
+  isBot: boolean;
 }
 
 export interface Board {

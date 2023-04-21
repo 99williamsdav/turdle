@@ -111,4 +111,7 @@ export class AdminComponent {
       return [];
     return Array.from(Array(count).keys())
   }
+  public getPlayerCount(array: Player[], isBot: boolean) : number {
+    return array.filter(x => isBot === x.isBot).length;
+  }
 }
