@@ -128,21 +128,21 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
             throw new HubException("Cannot play guess when game is not in-play.");
 
         string nextGuess;
-        double speed;
+        double seconds;
         if (player.Board!.Rows.Length == 0)
         {
             nextGuess = await player.Bot!.SelectOpeningWord(CorrectAnswer.Length);
-            speed = 1;
+            seconds = 3;
         }
         else
         {
-            (nextGuess, speed) = await player.Bot!.SelectWord(CorrectAnswer.Length, player.Board!, CorrectAnswer);
+            (nextGuess, var speed) = await player.Bot!.SelectWord(CorrectAnswer.Length, player.Board!, CorrectAnswer);
+            // TODO randomise speed slightly
+            const double minSeconds = 6;
+            var maxSeconds = _defaultTimeLimitSeconds * 1.1;
+            seconds = (maxSeconds - minSeconds) * (1 - speed) + minSeconds;
         }
 
-        // TODO randomise speed slightly
-        const double minSeconds = 3;
-        var maxSeconds = _defaultTimeLimitSeconds * 1.5;
-        var seconds = (maxSeconds - minSeconds) * (1 - speed) + minSeconds;
         var delay = TimeSpan.FromSeconds(seconds);
 
         return (nextGuess, player.Board!.Rows.Length + 1, delay);
