@@ -17,7 +17,7 @@ public class Room
     private static string[] _botPersonalities = new[] { "donald trump", "jesus", "a clown", "a child", "karl marx", 
         "shakespeare", "martin luther king", "greta thunberg", "albert einstein", "santa", "a horrible person",
         "maggie thatcher", "gollum", "david attenborough", "stephen hawking", "homer simpson",
-        "your mum", "your dad", "michael mcintyre", "a farmer", "poirot", "dracula", "satan", "a pervert",
+        "your mum", "your dad", "michael mcintyre", "a farmer", "dracula", "satan", "a pervert",
         "cardi b", "churchill", "dr dre", "taylor swift", "jack the ripper", "elon musk", "bill gates", "nigel farage",
         "boris johnson", "the king", "an alcoholic", "pablo escobar", "lara croft", "a pirate", "gandhi", "freud" };
 

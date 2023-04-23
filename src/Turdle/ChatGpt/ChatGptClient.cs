@@ -25,6 +25,14 @@ namespace Turdle.ChatGpt
             _logger = logger;
         }
 
+        public ChatGptClient(ILogger<ChatGptClient> logger, IOptions<ChatGptSettings> settings, string apiKey)
+        {
+            _settings = settings.Value;
+            _httpClient = new HttpClient();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+            _logger = logger;
+        }
+
         public async Task<string> GetChatCompletion(string message)
         {
             var request = new ChatCompletionRequest(Model, new[] { new ChatMessage("user", message) }, 0.5);

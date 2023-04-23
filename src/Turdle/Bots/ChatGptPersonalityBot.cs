@@ -38,8 +38,10 @@ namespace Turdle.Bots
                     var guess = openingWords.PickRandom();
                     if (guess.ToLower() == "sorry")
                     {
-                        // what is going on?
+                        // chatGPT has refused to answer, so retry
+                        continue;
                     }
+
                     return guess;
                 }
             }
