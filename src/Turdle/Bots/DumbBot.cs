@@ -35,5 +35,10 @@ namespace Turdle.Bots
         }
 
         public Task Init() => Task.CompletedTask;
+
+        public Task<string?> GetChatReply(string message)
+        {
+            return Task.FromResult<string?>(null);
+        }
     }
 }

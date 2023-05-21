@@ -33,6 +33,24 @@ namespace Turdle.ChatGpt
             _logger = logger;
         }
 
+        public async Task<string> GetManualCompletion(IList<ChatMessage> messages, double temperature = 0.5, string model = Model)
+        {
+            var request = new ChatCompletionRequest(model, messages, temperature);
+            _logger.LogInformation($"Calling ChatGPT.");
+            var startTime = DateTime.UtcNow;
+
+            var responseJson = await SendRequest(CompletionApiUri, request);
+            var response = JsonConvert.DeserializeObject<ChatCompletionResponse>(responseJson);
+
+            var duration = DateTime.UtcNow - startTime;
+            var price = DollarsPerToken * response.usage.total_tokens;
+            _logger.LogInformation($"ChatGPT tokens {response.usage.total_tokens} (${price:N4}), duration: {duration.TotalMilliseconds:N0}ms");
+
+            var completion = response.choices.Single().message.content;
+
+            return completion;
+        }
+
         public async Task<string> GetChatCompletion(string message)
         {
             var request = new ChatCompletionRequest(Model, new[] { new ChatMessage("user", message) }, 0.5);
@@ -83,9 +101,9 @@ namespace Turdle.ChatGpt
             return responseContent;
         }
 
-        private record ChatCompletionRequest(string model, ChatMessage[] messages, double temperature = 1);
+        public record ChatCompletionRequest(string model, IList<ChatMessage> messages, double temperature = 1);
 
-        private record ChatMessage(string role, string content);
+        public record ChatMessage(string role, string content);
 
         private record ChatCompletionResponse(string id, string Object, Choice[] choices, int created, string model, Usage usage, string finish_reason, int index);
 

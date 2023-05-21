@@ -8,5 +8,6 @@ namespace Turdle.Bots
         public Task<string> SelectOpeningWord(int wordLength);
         public Task<(string Word, double Speed)> SelectWord(int wordLength, Board board, string? correctAnswer);
         Task<string?> GetSmackTalk();
+        Task<string?> GetChatReply(string message);
     }
 }

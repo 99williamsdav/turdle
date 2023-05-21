@@ -62,11 +62,26 @@ namespace Turdle.ChatGpt
 
         public async Task<string> GetPersonalitySmackTalk(string personality)
         {
-            var prompt = $"Give me 5 examples of humorous smack talk {personality} might say in the lobby of an online game with strangers. " +
+            var prompt = $"Give me 5 examples of humorous smack talk {personality} might say in the lobby of an online word game with strangers. " +
                 $"Please answer with just a JSON array of strings";
             var response = await _chatGptClient.GetChatCompletion(prompt);
             var suggestions = JsonConvert.DeserializeObject<string[]>(response);
             return suggestions.PickRandom();
+        }
+
+        public async Task<string> GetChatReply(string personality, IList<string> botChatMessageHistory, string prompt)
+        {
+            var messages = new List<ChatGptClient.ChatMessage>()
+            {
+                new("system", $"You are role-playing as {personality} in the lobby of an online word game with strangers, " +
+                $"everything you answer must be typically related to {personality}")
+            };
+
+            messages.AddRange(botChatMessageHistory.Select(x => new ChatGptClient.ChatMessage("assistant", x)));
+            messages.Add(new("user", prompt));
+
+            var response = await _chatGptClient.GetManualCompletion(messages, 0.3);
+            return response;
         }
 
         public async Task<double> GetPersonalityAbility(string personality)

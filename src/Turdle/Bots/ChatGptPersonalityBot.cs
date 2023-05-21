@@ -12,6 +12,8 @@ namespace Turdle.Bots
         private string _personality;
         private double _ability;
 
+        private List<string> _chatHistory = new List<string>();
+
         public ChatGptPersonalityBot(string personality, ChatGptService chatGptService, WordService wordService)
         {
             _chatGptService = chatGptService;
@@ -67,7 +69,19 @@ namespace Turdle.Bots
         public async Task<string?> GetSmackTalk()
         {
             var smackTalk = await _chatGptService.GetPersonalitySmackTalk(_personality);
+            if (smackTalk != null)
+                _chatHistory.Add(smackTalk);
             return smackTalk;
+        }
+
+        public async Task<string?> GetChatReply(string message)
+        {
+            var reply = await _chatGptService.GetChatReply(_personality, _chatHistory, message);
+            if (string.IsNullOrWhiteSpace(reply))
+                return null;
+
+            _chatHistory.Add(reply);
+            return reply;
         }
     }
 }

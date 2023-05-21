@@ -722,6 +722,35 @@ public class Room
             .Concat(_tvConnections.Keys)
             .Concat(_adminConnections.Keys);
         await _hubContext.Clients.Clients(allConnections).SendAsync("ChatMessageReceived", chatMessage);
+
+        // If a player sent it, ask a bot for a reply
+        if (!player.IsBot && _internalRoundState.Players.Any(x => x.IsBot))
+        {
+            Player? recipient = message.StartsWith("@") 
+                ? _internalRoundState.Players.FirstOrDefault(x => message.StartsWith($"@{x.Alias}", StringComparison.InvariantCultureIgnoreCase))
+                : _internalRoundState.Players.Where(x => x.IsBot).ToArray().PickRandom();
+
+            if (recipient?.Bot != null)
+            {
+                var strippedMessage = message.Replace($"@{recipient.Alias} ", "", StringComparison.InvariantCultureIgnoreCase);
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        var reply = await recipient.Bot.GetChatReply(strippedMessage);
+                        if (reply != null)
+                        {
+                            reply = $"@{player.Alias} {reply}";
+                            await SendChat(recipient.ConnectionId, reply);
+                        }
+                    }
+                    catch (Exception e) 
+                    {
+                        _logger.LogError(e, $"Error asking bot for chat reply");
+                    }
+                });
+            }
+        }
     }
 
     public ChatMessage[] GetChatMessages() => _chatMessages.ToArray();
