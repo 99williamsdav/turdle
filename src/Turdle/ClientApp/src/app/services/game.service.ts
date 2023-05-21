@@ -27,6 +27,8 @@ export class GameService {
   private hubConnection: signalR.HubConnection | null = null;
   private _onHubConnected: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public onHubConnected: Observable<boolean> = this._onHubConnected.asObservable();
+  private _onNewChatMessage: BehaviorSubject<ChatMessage | null> = new BehaviorSubject<ChatMessage | null>(null);
+  public onNewChatMessage: Observable<ChatMessage | null> = this._onNewChatMessage.asObservable();
   private alphabet: string = 'QWERTYUIOPASDFGHJKLZXCVBNM';
   private guessing: boolean = false;
   private suggestingGuess: boolean = false;
@@ -105,6 +107,7 @@ export class GameService {
       this.ngZone.run(() => {
         // TODO dedupe
         this.chatMessages.push(chatMessage);
+        this._onNewChatMessage.next(chatMessage);
       });
     });
   }
@@ -294,6 +297,19 @@ export class GameService {
       this.currentPlayer = null;
       this.playerAlias = '';
       this.currentBoard = null;
+    } catch (e) {
+      console.log('Error logging out: ' + e);
+    }
+  }
+
+  public async sendChatMessage(message: string): Promise<void> {
+    if (this.hubConnection == null)
+      return;
+    if (!this.roomCode || !message)
+      return;
+
+    try {
+      await this.hubConnection.invoke('SendChat', this.roomCode, message);
     } catch (e) {
       console.log('Error logging out: ' + e);
     }

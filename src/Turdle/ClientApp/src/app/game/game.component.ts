@@ -1,4 +1,4 @@
-import {Component, HostListener, Inject, Pipe, PipeTransform} from '@angular/core';
+import {Component, ElementRef, HostListener, Inject, Pipe, PipeTransform, ViewChild} from '@angular/core';
 import {Board, GameService, RoundState, Player, Row, PointSchedule, GameParameters, ChatMessage} from "../services/game.service";
 import {ActivatedRoute, Router} from '@angular/router'
 import {OrderByPipe} from "../order-by.pipe";
@@ -15,12 +15,15 @@ import { AdminService } from '../services/admin.service';
   styleUrls: ['./game.component.css', '../letter-colors.shared.css']
 })
 export class GameComponent {
+  @ViewChild('chatInputField') chatInputField!: ElementRef<HTMLInputElement>;
+  @ViewChild('chatMessagesContainer') chatMessagesContainer!: ElementRef<HTMLDivElement>;
   public innerWidth: number | null = null;
   public isSmallScreen: boolean = false;
   public botPersonality: string = '';
   aliasForm = this.fb.group({
     Alias: ['', Validators.required]
   });
+  chatInput: string = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -47,8 +50,7 @@ export class GameComponent {
     if (this.gameService.currentPlayer != null)
       return null;
 
-    this.gameService.previousAliasInfoObservable.subscribe(aliasInfo =>
-    {
+    this.gameService.previousAliasInfoObservable.subscribe(aliasInfo => {
       console.log(`previousAlias info: ${aliasInfo.alias} (${aliasInfo.status})`)
       if (aliasInfo.status == 'RegisteredConnected') {
         // TODO just don't register
@@ -69,6 +71,12 @@ export class GameComponent {
         console.log(`Hub connected, registering alias: ${alias}`);
         return this.gameService.registerAlias(alias);
       });
+    });
+
+    this.gameService.onNewChatMessage.subscribe(chatMessage => {
+      if (!chatMessage) return;
+      console.log('new chat message, scrolling container.')
+      this.chatMessagesContainer.nativeElement.scroll(0, 0);
     });
 
     return null;
@@ -128,6 +136,15 @@ export class GameComponent {
     } catch (e: any) {
       this.toastService.default(e.message);
     }
+  }
+  public async sendChat(): Promise<void> {
+    let message = this.chatInput;
+    this.chatInput = '';
+    await this.gameService.sendChatMessage(message);
+  }
+  public async prepopulateChat(alias: string): Promise<void> {
+    this.chatInput = '@' + alias + ' ';
+    this.chatInputField.nativeElement.focus();
   }
 
   public async addBot(personality: string | null): Promise<void> {

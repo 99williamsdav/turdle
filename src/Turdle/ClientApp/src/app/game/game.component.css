@@ -29,3 +29,10 @@
 .give-up {
     font-size: 10px;
 }
+
+div.chat-messages {
+  height: 75vh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column-reverse;
+}

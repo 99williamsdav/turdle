@@ -31,3 +31,7 @@ code {
   background-color: #f169b4;
   border-color: #800040;
 }
+
+.clickable {
+  cursor: pointer;
+}

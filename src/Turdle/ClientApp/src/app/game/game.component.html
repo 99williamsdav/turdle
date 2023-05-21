@@ -68,14 +68,17 @@
       <div *ngIf="roundState.status == 'Waiting'">
         <h3 *ngIf="currentPlayer?.ready">Waiting for others</h3>
         <h3>Chat</h3>
-        <table class="table">
-          <tbody>
-            <tr *ngFor="let chatMessage of chatMessages">
-              <th>{{ chatMessage.alias }}</th>
-              <td>{{ chatMessage.message }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="chat-messages" #chatMessagesContainer>
+          <table class="table table-hover">
+            <tbody>
+              <tr *ngFor="let chatMessage of chatMessages" (click)="prepopulateChat(chatMessage.alias)" class="clickable">
+                <th class="text-nowrap">{{ chatMessage.alias }}</th>
+                <td>{{ chatMessage.message }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <input type="text" id="chatInput" name="chatInput" class="form-control" [(ngModel)]="chatInput" (keyup.enter)="sendChat()" #chatInputField />
       </div>
       <div *ngIf="roundState.status == 'Ready'">
         <!--        <button class="btn btn-success" (click)="startGame()">Start!</button>-->
