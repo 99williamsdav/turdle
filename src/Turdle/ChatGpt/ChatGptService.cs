@@ -16,9 +16,20 @@ namespace Turdle.ChatGpt
 
         public async Task<string[]> GetOpeningWordsByPersonality(string personality, int length)
         {
-            var prompt = $"give me 10 {length}-letter words that {personality} might play in scrabble, " +
-                $"as a comma-separated list with no additional information, ordered by likelihood";
-            var response = await _chatGptClient.GetChatCompletion(prompt);
+            //var prompt = $"give me 10 {length}-letter words that {personality} might play in scrabble, " +
+            //    $"as a comma-separated list with no additional information, ordered by likelihood";
+            //var response = await _chatGptClient.GetChatCompletion(prompt);
+
+            var messages = new List<ChatGptClient.ChatMessage>()
+            {
+                new("system", $"You are role-playing as {personality} playing scrabble, " +
+                $"your answers must be machine-readable"),
+                new("user", $"give me 10 {length}-letter words that you might play in scrabble, " +
+                $"as a comma-separated list with no additional information, ordered by likelihood")
+            };
+
+            var response = await _chatGptClient.GetManualCompletion(messages, 0.3);
+
             var suggestions = response.Replace(" ", "").Replace(".", "").Split(",");
             var validSuggestions = suggestions
                 .Where(x => x.Length == length)

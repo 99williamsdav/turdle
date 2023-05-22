@@ -31,14 +31,21 @@ namespace Turdle.Bots
             const int maxRetries = 3;
             for (int i = 0; i < maxRetries; i++)
             {
-                var openingWords = await _chatGptService.GetOpeningWordsByPersonality(_personality, wordLength);
-                // is this too limiting?
+                var suggestions = await _chatGptService.GetOpeningWordsByPersonality(_personality, wordLength);
+
                 var reasonableBotWords = _wordService.GetReasonableBotWords(wordLength);
-                openingWords = openingWords.Intersect(reasonableBotWords).ToArray();
-                if (openingWords.Length > 0)
+                var reasonableSuggestions = suggestions.Intersect(reasonableBotWords).ToArray();
+
+                if (reasonableSuggestions.Length <= 1)
                 {
-                    var guess = openingWords.PickRandom();
-                    if (guess.ToLower() == "sorry")
+                    var allAllowableWords = _wordService.GetDictionary(wordLength);
+                    reasonableSuggestions = suggestions.Intersect(allAllowableWords).ToArray();
+                }
+
+                if (reasonableSuggestions.Length > 0)
+                {
+                    var guess = reasonableSuggestions.PickRandom();
+                    if (guess.ToLower() == "sorry" && reasonableSuggestions.Length == 1)
                     {
                         // chatGPT has refused to answer, so retry
                         continue;
