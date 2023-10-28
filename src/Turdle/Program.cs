@@ -1,5 +1,6 @@
 using System.Configuration;
 using System.Text.Json.Serialization;
+using ChatGpt;
 using Microsoft.AspNetCore.HttpOverrides;
 using Turdle;
 using Turdle.Bots;
