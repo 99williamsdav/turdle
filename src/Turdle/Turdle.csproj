@@ -99,6 +99,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\ChatGpt\ChatGpt.csproj" />
+      <ProjectReference Include="..\Turdle.Utils\Turdle.Utils.csproj" />
     </ItemGroup>
 
     <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">

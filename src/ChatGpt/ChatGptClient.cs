@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Web;
 
-namespace Turdle.ChatGpt
+namespace ChatGpt
 {
     public class ChatGptClient
     {

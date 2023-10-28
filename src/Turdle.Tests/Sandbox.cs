@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using ChatGpt;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using System.Collections.Generic;

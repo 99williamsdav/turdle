@@ -1,4 +1,6 @@
-﻿namespace Turdle.Utils;
+﻿using Microsoft.Extensions.Logging;
+
+namespace Turdle.Utils;
 
 public class LogContext<T> : IDisposable
 {

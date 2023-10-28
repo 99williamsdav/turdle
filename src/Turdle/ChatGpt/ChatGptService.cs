@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using ChatGpt;
+using Newtonsoft.Json;
 using Turdle.Utils;
 
 namespace Turdle.ChatGpt
