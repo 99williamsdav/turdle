@@ -6,7 +6,7 @@ public static class Extensions
     
     public static T PickRandom<T>(this IList<T> set)
     {
-        return set[Random.Next(0, set.Count - 1)];
+        return set[Random.Next(0, set.Count)];
     }
 
     public static string GetOrdinal(this int value, bool includeNumber = false)
