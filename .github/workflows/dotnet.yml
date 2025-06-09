@@ -42,14 +42,31 @@ jobs:
       with:
         name: turdle
         path: ~/build/turdle
+    - name: Set version
+      run: echo "VERSION=$(date +'%Y%m%d%H%M')" >> $GITHUB_ENV
     - name: Tar
       run: |
-        tar -C ~/build/turdle -cvf turdle.tar .
+        tar -C ~/build/turdle -cvf turdle_${VERSION}.tar .
     - name: Upload
       uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.CONNECTION_STRING }}
         username: ${{ secrets.DEPLOY_USER }}
         password: ${{ secrets.DEPLOY_USER_PWD }}
-        source: "turdle.tar"
+        source: "turdle_${{ env.VERSION }}.tar"
         target: ${{ secrets.TARGET_DIR }}
+    - name: Deploy
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.CONNECTION_STRING }}
+        username: ${{ secrets.DEPLOY_USER }}
+        password: ${{ secrets.DEPLOY_USER_PWD }}
+        script: |
+          VERSION=${{ env.VERSION }}
+          TARGET_DIR=${{ secrets.TARGET_DIR }}
+          RELEASE_DIR=/var/www/turdle/releases/$VERSION
+          mkdir -p $RELEASE_DIR
+          tar -C $RELEASE_DIR -xvf $TARGET_DIR/turdle_${VERSION}.tar
+          cp /var/www/turdle/appsettings*.json $RELEASE_DIR/
+          ln -sfn $RELEASE_DIR /var/www/turdle/staging
+          sudo systemctl restart kestrel-turdle-staging
