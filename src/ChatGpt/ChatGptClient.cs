@@ -10,9 +10,9 @@ namespace ChatGpt
         private const string CompletionApiUri = "https://api.openai.com/v1/chat/completions";
         private const string ModelApiUri = "https://api.openai.com/v1/models";
 
-        private const decimal DollarsPerToken = 0.002m / 1000;
+        private const decimal DollarsPerToken = 0.8m / 1_000_000;
 
-        private const string Model = "gpt-3.5-turbo";
+        private const string Model = "gpt-4.1-nano";// "gpt-3.5-turbo";
 
         private readonly HttpClient _httpClient;
         private readonly ILogger<ChatGptClient> _logger;
