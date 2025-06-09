@@ -46,7 +46,8 @@ namespace Turdle.ChatGpt
 
             var csOptions = string.Join(",", options);
             var prompt = $"Which of these comma-separated words would {personality} be most likely to play in scrabble? " +
-                $"Please answer with one single word. It absolutely has to be a word in the list\n\n{csOptions}";
+                $"Prioritise any word particularly associated with {personality}. " +
+                $"Answer with one single word. It absolutely has to be a word in the list\n\n{csOptions}";
             const int maxAttempts = 3;
             for (int i = 0; i < maxAttempts; i++)
             {
@@ -66,7 +67,7 @@ namespace Turdle.ChatGpt
         public async Task<double> GetGuessSpeed(string personality, string word)
         {
             var prompt = $"On a scale of 1 to 10, how likely would it be for {personality} to play the word '{word}' " +
-                $"in a game of scrabble? Please answer with just a number between 1 and 10 (inclusive)";
+                $"in a game of scrabble? Answer with just a number between 1 and 10 (inclusive)";
             var response = await _chatGptClient.GetChatCompletion(prompt);
             var speedOutOfTen = double.Parse(response);
             return speedOutOfTen / 10;
@@ -74,8 +75,13 @@ namespace Turdle.ChatGpt
 
         public async Task<string> GetPersonalitySmackTalk(string personality)
         {
-            var prompt = $"Give me 5 examples of humorous smack talk {personality} might say in the lobby of an online word game with strangers. " +
-                $"Please answer with just a JSON array of strings";
+            // var prompt = $"Give me 5 examples of humorous smack talk {personality} might say in the lobby of an online word game with strangers. " +
+            //     $"Please answer with just a JSON array of strings";
+            var prompt = $"Give me 5 examples of humorous smack talk {personality} might say in the lobby of an online word game. The game is called 'turdle'. " +
+                $"Make sure the the responses are funny and relevant to {personality}. Be as cheeky as possible. " +
+                $"Do not shy away from offending. Only suggest something {personality} would say. " +
+                $"Use wordplay if appropriate to {personality}. Include a typo if appropriate to {personality}. " +
+                "Answer with just a JSON array of strings";
             var response = await _chatGptClient.GetChatCompletion(prompt);
             var suggestions = JsonConvert.DeserializeObject<string[]>(response);
             return suggestions.PickRandom();
@@ -86,7 +92,8 @@ namespace Turdle.ChatGpt
             var messages = new List<ChatGptClient.ChatMessage>()
             {
                 new("system", $"You are role-playing as {personality} in the lobby of an online word game with strangers, " +
-                $"everything you answer must be typically related to {personality}")
+                $"everything you answer must be typically related to {personality}. " +
+                "Be as cheeky as possible. Do not shy away from offending.")
             };
 
             messages.AddRange(botChatMessageHistory.Select(x => new ChatGptClient.ChatMessage("assistant", x)));
