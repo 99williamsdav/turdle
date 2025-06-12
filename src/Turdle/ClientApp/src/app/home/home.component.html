@@ -13,7 +13,21 @@
 <!--      </div>-->
 <!--    </div>-->
 <!--  </form>-->
-  <button class="btn btn-info" (click)="createRoom()">Create New Room</button>
+  <div class="row mb-3">
+    <div class="col text-center">
+      <button class="btn btn-primary btn-lg" (click)="createRoom()">Summon New Arena</button>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6 offset-md-3">
+      <form [formGroup]="joinForm" (ngSubmit)="joinRoom()">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="Enter room code" formControlName="roomCode" required>
+          <button class="btn btn-success" type="submit" [disabled]="!joinForm.valid">Join Room</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 
 <div class="container" *ngIf="!isConnected">
