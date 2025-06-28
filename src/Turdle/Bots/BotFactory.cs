@@ -1,16 +1,18 @@
-﻿using Turdle.ChatGpt;
+﻿using ChatGpt;
 
 namespace Turdle.Bots
 {
     public class BotFactory
     {
-        private readonly ChatGptService _chatGptService;
+        private readonly ChatGptClient _chatGptClient;
         private readonly WordService _wordService;
+        private readonly ILogger<ChatGptPersonalityBot> _logger;
 
-        public BotFactory(ChatGptService chatGptService, WordService wordService)
+        public BotFactory(WordService wordService, ChatGptClient chatGptClient, ILogger<ChatGptPersonalityBot> logger)
         {
-            _chatGptService = chatGptService;
             _wordService = wordService;
+            _chatGptClient = chatGptClient;
+            _logger = logger;
         }
 
         public IBot CreateBot(BotParams botParams)
@@ -20,7 +22,7 @@ namespace Turdle.Bots
                 case BotType.Dumb:
                     return new DumbBot(_wordService);
                 case BotType.ChatGptPersonality:
-                    return new ChatGptPersonalityBot(botParams.Personality, _chatGptService, _wordService);
+                    return new ChatGptPersonalityBot(botParams.Personality, _chatGptClient, _wordService, _logger);
                 default:
                     throw new ArgumentException($"Unknown bot type {botParams.BotType}");
             }

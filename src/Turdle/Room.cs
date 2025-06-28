@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR;
 using Turdle.Bots;
-using Turdle.ChatGpt;
 using Turdle.Hubs;
 using Turdle.Models;
 using Turdle.Utils;
@@ -29,7 +28,6 @@ public class Room
     private readonly IPointService _pointService;
     private readonly IWordAnalysisService _wordAnalyst;
     private readonly BotFactory _botFactory;
-    private readonly ChatGptService _chatGptService;
 
     private readonly DateTime _createdOn = DateTime.Now;
 
@@ -66,8 +64,7 @@ public class Room
         IWordAnalysisService wordAnalyst,
         string roomCode,
         Func<Task> roomSummaryUpdatedCallback,
-        BotFactory botFactory, 
-        ChatGptService chatGptService)
+        BotFactory botFactory)
     {
         _hubContext = hubContext;
         _adminHubContext = adminHubContext;
@@ -81,7 +78,6 @@ public class Room
         // TODO leave null until game has started? 
         _internalRoundState = new InternalRoundState(wordService.GetRandomWord(_gameParameters.AnswerList), _pointService, _gameParameters, _wordService);
         _botFactory = botFactory;
-        _chatGptService = chatGptService;
     }
 
     public RoomSummary ToSummary()

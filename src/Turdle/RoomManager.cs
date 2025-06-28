@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR;
 using Turdle.Bots;
-using Turdle.ChatGpt;
 using Turdle.Hubs;
 using Turdle.Models;
 using Turdle.ViewModel;
@@ -21,7 +20,6 @@ public class RoomManager
     private readonly IPointService _pointService;
     private readonly IWordAnalysisService _wordAnalyst;
     private readonly BotFactory _botFactory;
-    private readonly ChatGptService _chatGptService;
 
     private readonly Board _fakeReadyBoard;
     
@@ -31,8 +29,7 @@ public class RoomManager
     private readonly ConcurrentDictionary<string, Room> _rooms = new ConcurrentDictionary<string, Room>();
 
     public RoomManager(ILogger<RoomManager> logger, IHubContext<GameHub> gameHubContext, IHubContext<AdminHub> adminHubContext, IHubContext<HomeHub> homeHubContext,
-        WordService wordService, IPointService pointService, IWordAnalysisService wordAnalyst, BotFactory botFactory, 
-        ChatGptService chatGptService)
+        WordService wordService, IPointService pointService, IWordAnalysisService wordAnalyst, BotFactory botFactory)
     {
         _logger = logger;
         _gameHubContext = gameHubContext;
@@ -42,7 +39,6 @@ public class RoomManager
         _wordAnalyst = wordAnalyst;
         _homeHubContext = homeHubContext;
         _botFactory = botFactory;
-        _chatGptService = chatGptService;
 
         _fakeReadyBoard = new Board();
         _fakeReadyBoard.AddRow("EVERY", "START", null, null, 1, pointService);
@@ -60,7 +56,7 @@ public class RoomManager
         }
 
         var room = new Room(_gameHubContext, _adminHubContext, _wordService, _pointService, _logger, _wordAnalyst,
-            roomCode, BroadcastRooms, _botFactory, _chatGptService);
+            roomCode, BroadcastRooms, _botFactory);
         _rooms.TryAdd(roomCode, room);
 
         await BroadcastRooms();
