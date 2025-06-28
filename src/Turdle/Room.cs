@@ -231,15 +231,15 @@ public class Room
             {
                 await bot.Init();
                 await ToggleReady(true, player.ConnectionId);
+                await NotifyTyping(player.ConnectionId);
                 var smackTalk = await bot.GetSmackTalk();
                 if (smackTalk != null)
                 {
-                    await NotifyTyping(player.ConnectionId);
-                    var delay = TimeSpan.FromMilliseconds(Random.Shared.Next(1000, 3000));
+                    var delay = GetTypingDelayForMessage(smackTalk);
                     await Task.Delay(delay);
                     await SendChat(player.ConnectionId, smackTalk);
-                    await NotifyStoppedTyping(player.ConnectionId);
                 }
+                await NotifyStoppedTyping(player.ConnectionId);
             }
             catch (Exception e)
             {
@@ -744,16 +744,16 @@ public class Room
                 {
                     try
                     {
+                        await NotifyTyping(recipient.ConnectionId);
                         var reply = await recipient.Bot.GetChatReply(strippedMessage);
                         if (reply != null)
                         {
                             reply = $"@{player.Alias} {reply}";
-                            await NotifyTyping(recipient.ConnectionId);
-                            var delay = TimeSpan.FromMilliseconds(Random.Shared.Next(1000, 3000));
+                            var delay = GetTypingDelayForMessage(reply);
                             await Task.Delay(delay);
                             await SendChat(recipient.ConnectionId, reply);
-                            await NotifyStoppedTyping(recipient.ConnectionId);
                         }
+                        await NotifyStoppedTyping(recipient.ConnectionId);
                     }
                     catch (Exception e)
                     {
@@ -788,6 +788,13 @@ public class Room
             .Concat(_adminConnections.Keys);
 
         await _hubContext.Clients.Clients(otherConnections).SendAsync("PlayerStoppedTyping", player.Alias);
+    }
+
+    private static TimeSpan GetTypingDelayForMessage(string message)
+    {
+        var baseDelay = Random.Shared.Next(1000, 3000);
+        var lengthDelay = message.Length * 30; // additional delay for longer messages
+        return TimeSpan.FromMilliseconds(baseDelay + lengthDelay);
     }
 
 
