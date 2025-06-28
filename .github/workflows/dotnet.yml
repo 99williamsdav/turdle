@@ -26,6 +26,8 @@ jobs:
       uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8.0.x
+    - name: Set version
+      run: echo "VERSION=$(date +'%Y%m%d%H%M')" >> $GITHUB_ENV
     - name: Restore dependencies
       working-directory: ./src
       run: dotnet restore
@@ -42,8 +44,6 @@ jobs:
       with:
         name: turdle
         path: ~/build/turdle
-    - name: Set version
-      run: echo "VERSION=$(date +'%Y%m%d%H%M')" >> $GITHUB_ENV
     - name: Tar
       run: |
         tar -C ~/build/turdle -cvf turdle_${VERSION}.tar .
