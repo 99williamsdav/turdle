@@ -18,4 +18,17 @@ public class EnvironmentController : ControllerBase
     {
         return _configuration["EnvironmentName"] ?? "Production";
     }
+
+    [HttpGet]
+    [Route("GetEnvironmentInfo")]
+    public Turdle.ViewModel.EnvironmentInfo GetEnvironmentInfo()
+    {
+        var name = _configuration["EnvironmentName"] ?? "Production";
+
+        var assembly = typeof(EnvironmentController).Assembly;
+        var version = System.IO.File.GetLastWriteTimeUtc(assembly.Location)
+            .ToString("'v'yyyy-MM-dd-HH-mm");
+
+        return new Turdle.ViewModel.EnvironmentInfo(name, version);
+    }
 }

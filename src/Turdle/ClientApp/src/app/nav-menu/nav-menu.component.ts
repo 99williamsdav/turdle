@@ -11,12 +11,14 @@ export class NavMenuComponent implements OnInit {
   isExpanded = false;
   public environment = environment;
   public environmentName: string | null = null;
+  public environmentVersion: string | null = null;
 
   constructor(private environmentService: EnvironmentService) {
   }
 
   ngOnInit(): void {
     this.environmentService.environmentName$.subscribe(name => this.environmentName = name || null);
+    this.environmentService.environmentVersion$.subscribe(version => this.environmentVersion = version || null);
     this.environmentService.loadEnvironment();
   }
 
