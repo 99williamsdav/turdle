@@ -213,8 +213,27 @@ public class GameHub : Hub
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "SendChat"))
         {
+            var room = _roomManager.GetRoom(roomCode);
+            await room.SendChat(Context.ConnectionId, message);
+            await room.NotifyStoppedTyping(Context.ConnectionId);
+        }
+    }
+
+    public async Task Typing(string roomCode)
+    {
+        using (LogContext.Create(_logger, Context.ConnectionId, "Typing"))
+        {
             await _roomManager.GetRoom(roomCode)
-                .SendChat(Context.ConnectionId, message);
+                .NotifyTyping(Context.ConnectionId);
+        }
+    }
+
+    public async Task StopTyping(string roomCode)
+    {
+        using (LogContext.Create(_logger, Context.ConnectionId, "StopTyping"))
+        {
+            await _roomManager.GetRoom(roomCode)
+                .NotifyStoppedTyping(Context.ConnectionId);
         }
     }
 }

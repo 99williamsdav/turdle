@@ -77,8 +77,11 @@
               </tr>
             </tbody>
           </table>
+          <div *ngIf="typingPlayers.length > 0" class="typing-indicator">
+            {{ typingPlayers.join(', ') }} typing...
+          </div>
         </div>
-        <input type="text" id="chatInput" name="chatInput" class="form-control" [(ngModel)]="chatInput" (keyup.enter)="sendChat()" #chatInputField />
+        <input type="text" id="chatInput" name="chatInput" class="form-control" [(ngModel)]="chatInput" (keyup.enter)="sendChat()" (input)="chatTyping()" #chatInputField />
       </div>
       <div *ngIf="roundState.status == 'Ready'">
         <!--        <button class="btn btn-success" (click)="startGame()">Start!</button>-->

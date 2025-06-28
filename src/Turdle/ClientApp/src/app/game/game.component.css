@@ -36,3 +36,8 @@ div.chat-messages {
   display: flex;
   flex-direction: column-reverse;
 }
+
+.typing-indicator {
+  font-style: italic;
+  color: gray;
+}
