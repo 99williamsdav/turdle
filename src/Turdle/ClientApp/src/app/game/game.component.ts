@@ -142,6 +142,13 @@ export class GameComponent {
     this.chatInput = '';
     await this.gameService.sendChatMessage(message);
   }
+
+  public chatTyping(): void {
+    if (this.chatInput && this.chatInput.length > 0)
+      this.gameService.notifyTyping();
+    else
+      this.gameService.notifyStopTyping();
+  }
   public async prepopulateChat(alias: string): Promise<void> {
     this.chatInput = '@' + alias + ' ';
     this.chatInputField.nativeElement.focus();
@@ -214,6 +221,9 @@ export class GameComponent {
   }
   get chatMessages(): ChatMessage[] {
     return this.gameService.chatMessages;
+  }
+  get typingPlayers(): string[] {
+    return this.gameService.typingAliases;
   }
 
   // UTILS

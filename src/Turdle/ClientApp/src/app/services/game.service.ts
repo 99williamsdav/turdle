@@ -24,6 +24,7 @@ export class GameService {
   private countdownTimerSubscription: Subscription | null = null;
   public pings: Date[] = [];
   public chatMessages: ChatMessage[] = [];
+  public typingAliases: string[] = [];
   private hubConnection: signalR.HubConnection | null = null;
   private _onHubConnected: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
   public onHubConnected: Observable<boolean> = this._onHubConnected.asObservable();
@@ -32,6 +33,7 @@ export class GameService {
   private alphabet: string = 'QWERTYUIOPASDFGHJKLZXCVBNM';
   private guessing: boolean = false;
   private suggestingGuess: boolean = false;
+  private lastTypingSent: number = 0;
 
   public fakeReadyGameBoard: Board | null = null;
   public fakeReadyGameWord: string = 'STAR';
@@ -108,6 +110,26 @@ export class GameService {
         // TODO dedupe
         this.chatMessages.push(chatMessage);
         this._onNewChatMessage.next(chatMessage);
+
+        // remove typing indicator for sender
+        const index = this.typingAliases.indexOf(chatMessage.alias);
+        if (index > -1) this.typingAliases.splice(index, 1);
+      });
+    });
+
+    this.hubConnection?.on('PlayerTyping', (alias: string) => {
+      this.ngZone.run(() => {
+        if (alias === this.playerAlias) return;
+        if (this.typingAliases.indexOf(alias) === -1) {
+          this.typingAliases.push(alias);
+        }
+      });
+    });
+
+    this.hubConnection?.on('PlayerStoppedTyping', (alias: string) => {
+      this.ngZone.run(() => {
+        const index = this.typingAliases.indexOf(alias);
+        if (index > -1) this.typingAliases.splice(index, 1);
       });
     });
   }
@@ -310,8 +332,39 @@ export class GameService {
 
     try {
       await this.hubConnection.invoke('SendChat', this.roomCode, message);
+      await this.notifyStopTyping();
     } catch (e) {
       console.log('Error logging out: ' + e);
+    }
+  }
+
+  public async notifyTyping(): Promise<void> {
+    const now = Date.now();
+    if (now - this.lastTypingSent < 1000)
+      return;
+    this.lastTypingSent = now;
+    if (this.hubConnection == null)
+      return;
+    if (!this.roomCode)
+      return;
+
+    try {
+      await this.hubConnection.invoke('Typing', this.roomCode);
+    } catch (e) {
+      console.log('Error sending typing notification: ' + e);
+    }
+  }
+
+  public async notifyStopTyping(): Promise<void> {
+    if (this.hubConnection == null)
+      return;
+    if (!this.roomCode)
+      return;
+
+    try {
+      await this.hubConnection.invoke('StopTyping', this.roomCode);
+    } catch (e) {
+      console.log('Error sending stop typing notification: ' + e);
     }
   }
 

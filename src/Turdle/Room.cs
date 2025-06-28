@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR;
 using Turdle.Bots;
 using Turdle.ChatGpt;
@@ -230,9 +231,15 @@ public class Room
             {
                 await bot.Init();
                 await ToggleReady(true, player.ConnectionId);
+                await NotifyTyping(player.ConnectionId);
                 var smackTalk = await bot.GetSmackTalk();
                 if (smackTalk != null)
+                {
+                    var delay = GetTypingDelayForMessage(smackTalk);
+                    await Task.Delay(delay);
                     await SendChat(player.ConnectionId, smackTalk);
+                }
+                await NotifyStoppedTyping(player.ConnectionId);
             }
             catch (Exception e)
             {
@@ -726,7 +733,7 @@ public class Room
         // If a player sent it, ask a bot for a reply
         if (!player.IsBot && _internalRoundState.Players.Any(x => x.IsBot))
         {
-            Player? recipient = message.StartsWith("@") 
+            Player? recipient = message.StartsWith("@")
                 ? _internalRoundState.Players.FirstOrDefault(x => message.StartsWith($"@{x.Alias}", StringComparison.InvariantCultureIgnoreCase))
                 : _internalRoundState.Players.Where(x => x.IsBot).ToArray().PickRandom();
 
@@ -737,14 +744,18 @@ public class Room
                 {
                     try
                     {
+                        await NotifyTyping(recipient.ConnectionId);
                         var reply = await recipient.Bot.GetChatReply(strippedMessage);
                         if (reply != null)
                         {
                             reply = $"@{player.Alias} {reply}";
+                            var delay = GetTypingDelayForMessage(reply);
+                            await Task.Delay(delay);
                             await SendChat(recipient.ConnectionId, reply);
                         }
+                        await NotifyStoppedTyping(recipient.ConnectionId);
                     }
-                    catch (Exception e) 
+                    catch (Exception e)
                     {
                         _logger.LogError(e, $"Error asking bot for chat reply");
                     }
@@ -752,6 +763,40 @@ public class Room
             }
         }
     }
+
+    public async Task NotifyTyping(string connectionId)
+    {
+        if (!_playersByConnectionId.TryGetValue(connectionId, out var player))
+            return;
+
+        var otherConnections = _internalRoundState.Players.Where(x => !x.IsBot && x.ConnectionId != connectionId)
+            .Select(x => x.ConnectionId)
+            .Concat(_tvConnections.Keys)
+            .Concat(_adminConnections.Keys);
+
+        await _hubContext.Clients.Clients(otherConnections).SendAsync("PlayerTyping", player.Alias);
+    }
+
+    public async Task NotifyStoppedTyping(string connectionId)
+    {
+        if (!_playersByConnectionId.TryGetValue(connectionId, out var player))
+            return;
+
+        var otherConnections = _internalRoundState.Players.Where(x => !x.IsBot && x.ConnectionId != connectionId)
+            .Select(x => x.ConnectionId)
+            .Concat(_tvConnections.Keys)
+            .Concat(_adminConnections.Keys);
+
+        await _hubContext.Clients.Clients(otherConnections).SendAsync("PlayerStoppedTyping", player.Alias);
+    }
+
+    private static TimeSpan GetTypingDelayForMessage(string message)
+    {
+        var baseDelay = Random.Shared.Next(1000, 3000);
+        var lengthDelay = message.Length * 30; // additional delay for longer messages
+        return TimeSpan.FromMilliseconds(baseDelay + lengthDelay);
+    }
+
 
     public ChatMessage[] GetChatMessages() => _chatMessages.ToArray();
 }
