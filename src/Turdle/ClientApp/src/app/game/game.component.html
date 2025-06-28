@@ -77,9 +77,9 @@
               </tr>
             </tbody>
           </table>
-          <div *ngIf="typingPlayers.length > 0" class="typing-indicator">
-            {{ typingPlayers.join(', ') }} typing...
-          </div>
+        </div>
+        <div *ngIf="typingPlayers.length > 0" class="typing-indicator">
+          {{ typingPlayers.join(', ') }} typing...
         </div>
         <input type="text" id="chatInput" name="chatInput" class="form-control" [(ngModel)]="chatInput" (keyup.enter)="sendChat()" (input)="chatTyping()" #chatInputField />
       </div>
