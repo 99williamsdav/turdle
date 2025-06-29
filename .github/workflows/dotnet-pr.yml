@@ -43,10 +43,7 @@ jobs:
     - name: Set version
       run: echo "VERSION=$(date +'%Y%m%d%H%M')" >> $GITHUB_ENV
     - name: Set branch
-      run: |
-        BRANCH="${{ github.head_ref }}"
-        BRANCH="${BRANCH##*/}"
-        echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
+      run: echo "BRANCH=pr-${{ github.event.number }}" >> $GITHUB_ENV
     - name: Tar
       run: |
         tar -C ~/build/turdle -cvf turdle_${VERSION}.tar .
