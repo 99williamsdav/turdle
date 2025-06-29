@@ -21,6 +21,12 @@ export class HomeComponent {
     this.joinForm = this.fb.group({
       roomCode: ['', Validators.required]
     });
+    this.joinForm.get('roomCode')!.valueChanges.subscribe(value => {
+      const upper = (value || '').toUpperCase();
+      if (value !== upper) {
+        this.joinForm.get('roomCode')!.setValue(upper, { emitEvent: false });
+      }
+    });
   }
 
   get isConnected() : boolean {
@@ -45,7 +51,7 @@ export class HomeComponent {
   }
 
   async joinRoom() {
-    const code = this.joinForm.value.roomCode;
+    const code = this.joinForm.value.roomCode?.toUpperCase();
     if (!code)
       return;
     await this.router.navigate(['/play', code]);
