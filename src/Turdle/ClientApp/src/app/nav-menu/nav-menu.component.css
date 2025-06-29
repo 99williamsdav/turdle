@@ -28,4 +28,13 @@ html {
   text-align: center;
   font-weight: 500;
   padding: 0.15rem;
+  position: relative;
+}
+
+.staging-version {
+  position: absolute;
+  right: 0.25rem;
+  font-size: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
 }
