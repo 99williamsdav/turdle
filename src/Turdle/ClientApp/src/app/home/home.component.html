@@ -15,15 +15,15 @@
 <!--  </form>-->
   <div class="row mb-3">
     <div class="col text-center">
-      <button class="btn btn-primary btn-lg" (click)="createRoom()">Create New Room</button>
+      <button class="btn btn-primary btn-lg massive-button" (click)="createRoom()">Create New Room</button>
     </div>
   </div>
   <div class="row">
     <div class="col-md-6 offset-md-3">
       <form [formGroup]="joinForm" (ngSubmit)="joinRoom()">
         <div class="input-group">
-          <input type="text" class="form-control" placeholder="Enter room code" formControlName="roomCode" required>
-          <button class="btn btn-success" type="submit" [disabled]="!joinForm.valid">Join Room</button>
+          <input type="text" class="form-control massive-input" placeholder="Enter room code" formControlName="roomCode" required>
+          <button class="btn btn-success btn-lg massive-button" type="submit" [disabled]="!joinForm.valid">Join Room</button>
         </div>
       </form>
     </div>

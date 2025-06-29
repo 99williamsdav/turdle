@@ -1,0 +1,17 @@
+
+.massive-button {
+  font-size: 3rem;
+  padding: 1.25rem 2.5rem;
+  border-radius: 1rem;
+  background: linear-gradient(45deg, #ff66cc, #33ccff);
+  color: #fff;
+  border: none;
+}
+
+
+.massive-input {
+  font-size: 2.5rem;
+  padding: 1.25rem;
+  border-radius: 1rem;
+  border: 2px solid #33ccff;
+}
