@@ -26,8 +26,8 @@ public class EnvironmentController : ControllerBase
         var name = _configuration["EnvironmentName"] ?? "Production";
 
         var assembly = typeof(EnvironmentController).Assembly;
-        var version = System.IO.File.GetLastWriteTimeUtc(assembly.Location)
-            .ToString("'v'yyyy-MM-dd-HH-mm");
+        var timestamp = System.IO.File.GetLastWriteTimeUtc(assembly.Location);
+        var version = $"v{timestamp:yyyyMMdd-HHmm}";
 
         return new Turdle.ViewModel.EnvironmentInfo(name, version);
     }
