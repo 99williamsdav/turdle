@@ -14,12 +14,12 @@
 <!--    </div>-->
 <!--  </form>-->
   <div class="row mb-3">
-    <div class="col text-center">
+    <div class="col-md-8 offset-md-2 text-center">
       <button class="btn btn-primary btn-lg massive-button" (click)="createRoom()">Create New Room</button>
     </div>
   </div>
   <div class="row">
-    <div class="col-md-6 offset-md-3">
+    <div class="col-md-8 offset-md-2">
       <form [formGroup]="joinForm" (ngSubmit)="joinRoom()">
         <div class="input-group">
           <input type="text" class="form-control massive-input" placeholder="Enter room code" formControlName="roomCode" required>
