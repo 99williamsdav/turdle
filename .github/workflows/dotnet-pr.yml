@@ -4,7 +4,7 @@
 name: .NET build
 
 on:
-  push:
+  pull_request:
     branches: [ "main" ]
 
 jobs:
@@ -45,7 +45,7 @@ jobs:
     - name: Set branch
       run: echo "BRANCH=${BRANCH}" >> $GITHUB_ENV
       env:
-        BRANCH: ${{ github.ref_name }}
+        BRANCH: ${{ github.head_ref }}
     - name: Tar
       run: |
         tar -C ~/build/turdle -cvf turdle_${VERSION}.tar .
