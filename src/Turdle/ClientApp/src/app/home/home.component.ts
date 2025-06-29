@@ -1,10 +1,8 @@
 import { Component } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
-import { FormControl, FormGroup } from '@angular/forms';
-import { Validators } from '@angular/forms';
-import { GameService } from '../services/game.service';
-import { Router } from '@angular/router'
-import {HomeService} from "../services/home.service";
+import { FormBuilder, Validators } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
+import { HomeService } from '../services/home.service';
 
 @Component({
   selector: 'app-home',
@@ -12,11 +10,16 @@ import {HomeService} from "../services/home.service";
 })
 export class HomeComponent {
 
+  joinForm: FormGroup;
+
   constructor(
     private homeService: HomeService,
     private fb: FormBuilder,
     private router: Router) {
     console.log('HomeComponent ctor');
+    this.joinForm = this.fb.group({
+      roomCode: ['', Validators.required]
+    });
   }
 
   get isConnected() : boolean {
@@ -38,5 +41,12 @@ export class HomeComponent {
 
     console.log('Room created with code: ' + roomCode);
     await this.router.navigate(['/play', roomCode]);
+  }
+
+  async joinRoom() {
+    const code = this.joinForm.value.roomCode;
+    if (!code)
+      return;
+    await this.router.navigate(['/play', code]);
   }
 }
