@@ -58,14 +58,13 @@ export class GameService {
     let hubConnection = new signalR.HubConnectionBuilder()
       .withUrl(this.baseUrl + 'gameHub')
       .build();
-    try {
-      await hubConnection.start();
-      this.hubConnection = hubConnection;
-      this._onHubConnected.next(true);
-    } catch (e) {
-      console.log('Error while starting connection: ' + e);
-      return;
-    }
+    this.hubConnection = hubConnection;
+    this.hubConnection.onclose(() => {
+      this._onHubConnected.next(false);
+      setTimeout(() => this.startConnection(), 5000);
+    });
+
+    await this.startConnection();
 
     console.log('Game hub connection started');
     this.hubConnection?.on('Ping', (data) => {
@@ -560,6 +559,17 @@ export class GameService {
       await this.hubConnection.invoke('UpdateMaxGuesses', this.roomCode, maxGuesses);
     } catch (e) {
       console.log('Error updating max guesses: ' + e);
+    }
+  }
+
+  private async startConnection(): Promise<void> {
+    if (!this.hubConnection) return;
+    try {
+      await this.hubConnection.start();
+      this._onHubConnected.next(true);
+    } catch (e) {
+      console.log('Error while starting connection: ' + e);
+      setTimeout(() => this.startConnection(), 5000);
     }
   }
 
