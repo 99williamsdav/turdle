@@ -184,13 +184,12 @@ public class Room
                 var avatarPath = await _avatarService.GetOrGenerateAvatar(alias);
                 if (avatarPath != null)
                 {
-                    MaskedRoundState avatarMasked;
                     lock (_stateLock)
                     {
                         player.SetAvatarPath(avatarPath);
-                        avatarMasked = _internalRoundState.Mask();
+                        maskedRoundState = _internalRoundState.Mask();
                     }
-                    await BroadcastRoundState(_internalRoundState, avatarMasked);
+                    await BroadcastRoundState(_internalRoundState, maskedRoundState);
                     await _roomSummaryUpdatedCallback();
                 }
             }
@@ -253,21 +252,21 @@ public class Room
         {
             try
             {
+                await bot.Init();
+                await ToggleReady(true, player.ConnectionId);
+
                 var avatarPath = await _avatarService.GetOrGenerateAvatar(personality ?? "bot");
                 if (avatarPath != null)
                 {
-                    MaskedRoundState avatarMasked;
                     lock (_stateLock)
                     {
                         player.SetAvatarPath(avatarPath);
-                        avatarMasked = _internalRoundState.Mask();
+                        maskedRoundState = _internalRoundState.Mask();
                     }
-                    await BroadcastRoundState(_internalRoundState, avatarMasked);
+                    await BroadcastRoundState(_internalRoundState, maskedRoundState);
                     await _roomSummaryUpdatedCallback();
                 }
-
-                await bot.Init();
-                await ToggleReady(true, player.ConnectionId);
+                
                 await NotifyTyping(player.ConnectionId);
                 var smackTalk = await bot.GetSmackTalk();
                 if (smackTalk != null)
