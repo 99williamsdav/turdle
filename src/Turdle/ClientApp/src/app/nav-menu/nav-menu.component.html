@@ -1,6 +1,6 @@
 <header>
   <div class="staging-banner" *ngIf="environmentName === 'Staging'">
-    STAGING ENVIRONMENT
+    <a href="/" class="staging-link">STAGING ENVIRONMENT</a>
     <span *ngIf="environmentVersion" class="staging-version">{{ environmentVersion }}</span>
   </div>
   <nav
