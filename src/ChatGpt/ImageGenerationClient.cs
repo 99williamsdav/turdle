@@ -7,6 +7,7 @@ namespace ChatGpt
     public class ImageGenerationClient
     {
         private const string ImageGenerationApiUri = "https://api.openai.com/v1/images/generations";
+        private const string Model = "dall-e-2";
 
         private readonly HttpClient _httpClient;
         private readonly ILogger<ImageGenerationClient> _logger;
@@ -28,14 +29,13 @@ namespace ChatGpt
             _logger = logger;
         }
 
-        private const string Model = "dall-e-3";
-
         public async Task<string?> GenerateImage(
             string prompt,
             int n = 1,
             ImageSize size = ImageSize.Square,
             ImageQuality quality = ImageQuality.Auto,
-            string model = Model)
+            string model = Model,
+            bool transparentBackground = true)
         {
             var request = new ImageGenerationRequest(
                 model,
@@ -43,7 +43,7 @@ namespace ChatGpt
                 n,
                 size.ToApiString(),
                 quality.ToApiString(),
-                true);
+                transparentBackground);
             _logger.LogInformation("Calling OpenAI Image Generation API.");
 
             var response = await SendRequest<ImageGenerationRequest, ImageGenerationResponse>(ImageGenerationApiUri, request);
