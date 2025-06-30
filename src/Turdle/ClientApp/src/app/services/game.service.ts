@@ -1,6 +1,6 @@
 import {Inject, Injectable, NgZone} from '@angular/core';
 import * as signalR from "@aspnet/signalr";
-import {BehaviorSubject, firstValueFrom, interval, Observable, of, Subject, Subscription, timer} from 'rxjs';
+import {BehaviorSubject, interval, Observable, of, Subject, Subscription, timer} from 'rxjs';
 import {HttpClient, HttpParams} from "@angular/common/http";
 import {CookieService} from "ngx-cookie";
 
@@ -140,8 +140,9 @@ export class GameService {
     } );
 
     try {
-      this.roundState = await firstValueFrom(
-        this.http.get<RoundState>(this.baseUrl + 'getgamestate', { params: new HttpParams().set('roomCode', this.roomCode) }));
+      this.roundState = await this.http
+        .get<RoundState>(this.baseUrl + 'getgamestate', { params: new HttpParams().set('roomCode', this.roomCode) })
+        .toPromise();
     } catch (e) {
       console.error(e);
       return false;
