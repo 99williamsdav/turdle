@@ -6,6 +6,8 @@ using Turdle.Hubs;
 using Turdle.Models;
 using Turdle.Utils;
 using Turdle.ViewModel;
+using ChatGpt;
+using System.Threading.Tasks;
 using Timer = System.Timers.Timer;
 
 namespace Turdle;
@@ -28,6 +30,7 @@ public class Room
     private readonly IPointService _pointService;
     private readonly IWordAnalysisService _wordAnalyst;
     private readonly BotFactory _botFactory;
+    private readonly PersonalityAvatarService _avatarService;
 
     private readonly DateTime _createdOn = DateTime.Now;
 
@@ -64,7 +67,8 @@ public class Room
         IWordAnalysisService wordAnalyst,
         string roomCode,
         Func<Task> roomSummaryUpdatedCallback,
-        BotFactory botFactory)
+        BotFactory botFactory,
+        PersonalityAvatarService avatarService)
     {
         _hubContext = hubContext;
         _adminHubContext = adminHubContext;
@@ -78,6 +82,7 @@ public class Room
         // TODO leave null until game has started? 
         _internalRoundState = new InternalRoundState(wordService.GetRandomWord(_gameParameters.AnswerList), _pointService, _gameParameters, _wordService);
         _botFactory = botFactory;
+        _avatarService = avatarService;
     }
 
     public RoomSummary ToSummary()
@@ -172,6 +177,29 @@ public class Room
             await BroadcastParameters();
         await _roomSummaryUpdatedCallback();
 
+        Task.Run(async () =>
+        {
+            try
+            {
+                var avatarPath = await _avatarService.GetOrGenerateAvatar(alias);
+                if (avatarPath != null)
+                {
+                    MaskedRoundState avatarMasked;
+                    lock (_stateLock)
+                    {
+                        player.SetAvatarPath(avatarPath);
+                        avatarMasked = _internalRoundState.Mask();
+                    }
+                    await BroadcastRoundState(_internalRoundState, avatarMasked);
+                    await _roomSummaryUpdatedCallback();
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Error generating avatar for {alias}");
+            }
+        });
+
         // TODO replace this with admin option
         if (_adminConnectionId == connectionId)
         {
@@ -225,6 +253,19 @@ public class Room
         {
             try
             {
+                var avatarPath = await _avatarService.GetOrGenerateAvatar(personality ?? "bot");
+                if (avatarPath != null)
+                {
+                    MaskedRoundState avatarMasked;
+                    lock (_stateLock)
+                    {
+                        player.SetAvatarPath(avatarPath);
+                        avatarMasked = _internalRoundState.Mask();
+                    }
+                    await BroadcastRoundState(_internalRoundState, avatarMasked);
+                    await _roomSummaryUpdatedCallback();
+                }
+
                 await bot.Init();
                 await ToggleReady(true, player.ConnectionId);
                 await NotifyTyping(player.ConnectionId);

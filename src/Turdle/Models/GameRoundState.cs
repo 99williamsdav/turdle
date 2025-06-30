@@ -256,21 +256,23 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
         return board;
     }
 
-    public Player RegisterPlayer(string alias, string connectionId, string ipAddress)
+    public Player RegisterPlayer(string alias, string connectionId, string ipAddress, string? avatarPath = null)
     {
         var player = _players.SingleOrDefault(x => x.Alias == alias);
         if (player != null)
         {
             if (player.IsConnected && player.IpAddress != ipAddress)
                 throw new AliasAlreadyTakenException(alias);
-            
+
             player.ConnectionId = connectionId;
             player.IpAddress = ipAddress;
             player.IsConnected = true;
+            if (avatarPath != null)
+                player.AvatarPath = avatarPath;
         }
         else
         {
-            player = new Player(alias, connectionId, ipAddress);
+            player = new Player(alias, connectionId, ipAddress, avatarPath);
             _players.Add(player);
             Players = _players.ToArray();
             RecalculateRanking();
@@ -288,9 +290,9 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
         return player;
     }
 
-    public Player RegisterBot(IBot bot, string alias)
+    public Player RegisterBot(IBot bot, string alias, string? avatarPath = null)
     {
-        var player = new Player(alias, bot);
+        var player = new Player(alias, bot, avatarPath);
         _players.Add(player);
         Players = _players.ToArray();
         RecalculateRanking();
