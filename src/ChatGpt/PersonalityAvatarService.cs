@@ -13,7 +13,7 @@ namespace ChatGpt
         {
             _imageClient = imageClient;
             _logger = logger;
-            _cacheDir = cacheDirectory ?? Path.Combine(AppContext.BaseDirectory, "avatar-cache");
+            _cacheDir = cacheDirectory ?? Path.Combine(AppContext.BaseDirectory, "wwwroot", "avatar-cache");
             Directory.CreateDirectory(_cacheDir);
         }
 

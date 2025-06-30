@@ -263,7 +263,7 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
         {
             if (player.IsConnected && player.IpAddress != ipAddress)
                 throw new AliasAlreadyTakenException(alias);
-            
+
             player.ConnectionId = connectionId;
             player.IpAddress = ipAddress;
             player.IsConnected = true;

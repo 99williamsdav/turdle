@@ -17,32 +17,41 @@ public class Player : IPlayer<Board, Board.Row, Board.Tile>
     public string? IpAddress { get; set; }
     public bool IsConnected { get; set; }
     public DateTime RegisteredAt { get; set; }
+
+    public string? AvatarPath { get; set; }
     
     public bool Ready { get; set; }
     public Board? Board { get; set; }
 
-    public Player(string alias, string connectionId, string ipAddress)
+    public Player(string alias, string connectionId, string ipAddress, string? avatarPath = null)
     {
         Alias = alias;
         ConnectionId = connectionId;
         IpAddress = ipAddress;
         IsConnected = true;
         RegisteredAt = DateTime.Now;
+        AvatarPath = avatarPath;
     }
 
-    public Player(string alias, IBot bot)
+    public void SetAvatarPath(string? avatarPath)
+    {
+        AvatarPath = avatarPath;
+    }
+
+    public Player(string alias, IBot bot, string? avatarPath = null)
     {
         Alias = alias;
         Bot = bot;
         ConnectionId = $"{alias}{Guid.NewGuid()}";
         IsConnected = true;
         RegisteredAt = DateTime.Now;
+        AvatarPath = avatarPath;
     }
 
     public Player CopyForNewGame()
     {
         return Bot == null
-            ? new Player(Alias, ConnectionId, IpAddress!)
+            ? new Player(Alias, ConnectionId, IpAddress!, AvatarPath)
             {
                 Points = Points,
                 Rank = Rank,
@@ -50,7 +59,7 @@ public class Player : IPlayer<Board, Board.Row, Board.Tile>
                 IsConnected = IsConnected,
                 RegisteredAt = RegisteredAt
             }
-            : new Player(Alias, Bot)
+            : new Player(Alias, Bot, AvatarPath)
             {
                 Points = Points,
                 Rank = Rank,
@@ -72,6 +81,7 @@ public class Player : IPlayer<Board, Board.Row, Board.Tile>
             IsJointRank = IsJointRank,
             IsConnected = IsConnected,
             ConnectionId = ConnectionId,
+            AvatarPath = AvatarPath,
             Ready = Ready,
             Board = Board?.Mask()
         };
@@ -90,6 +100,7 @@ public interface IPlayer<out TBoard, out TRow, out TTile>
     bool IsJointRank { get; }
     string ConnectionId { get; }
     bool IsConnected { get; }
+    string? AvatarPath { get; }
     bool Ready { get; }
     TBoard? Board { get; }
 }
@@ -104,7 +115,9 @@ public class MaskedPlayer : IPlayer<MaskedBoard, MaskedBoard.MaskedRow, MaskedBo
     public bool IsJointRank { get; set; } = true;
     public string ConnectionId { get; set; }
     public bool IsConnected { get; set; }
-    
+
+    public string? AvatarPath { get; set; }
+
     public bool Ready { get; set; }
     public MaskedBoard? Board { get; set; }
 }
