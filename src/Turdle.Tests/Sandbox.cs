@@ -16,11 +16,27 @@ namespace Turdle.Tests
     {
         private readonly ChatGptClient _chatGptClient;
         private readonly WordService _wordService;
+        private readonly ImageGenerationClient _imageGenerationClient;
 
         public Sandbox()
         {
-            _chatGptClient = new ChatGptClient(Mock.Of<ILogger<ChatGptClient>>(), Mock.Of<IOptions<ChatGptSettings>>());
+            var optionsMock = new Mock<IOptions<ChatGptSettings>>();
+            optionsMock.Setup(o => o.Value).Returns(new ChatGptSettings
+            {
+            });
+            _chatGptClient = new ChatGptClient(Mock.Of<ILogger<ChatGptClient>>(), optionsMock.Object);
             _wordService = new WordService();
+            _imageGenerationClient = new ImageGenerationClient(Mock.Of<ILogger<ImageGenerationClient>>(), optionsMock.Object);
+        }
+
+        [Fact(Skip = "Manual test")]
+        public async Task ImageTest()
+        {
+            var personality = "homer simpson";
+            var prompt = $"Generate a cartoon avatar of {personality}. Make them look pretentiously smart, " +
+                    "like they're trying to look smarter than they are. ";
+                    //"Make the background generic, lexical, and floral";
+            var imageUrl = await _imageGenerationClient.GenerateImage(prompt, ImageSize.DallE2Large);
         }
 
         [Fact(Skip = "Manual test")]
