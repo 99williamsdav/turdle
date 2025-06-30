@@ -24,13 +24,12 @@ export class HomeService {
     this._hubConnection = new signalR.HubConnectionBuilder()
       .withUrl(this.baseUrl + 'homeHub')
       .build();
-    try {
-      await this._hubConnection.start();
-      this.isConnected = true;
-    } catch (e) {
-      console.log('Error while starting connection: ' + e);
-      return;
-    }
+    this._hubConnection.onclose(() => {
+      this.isConnected = false;
+      setTimeout(() => this.startConnection(), 5000);
+    });
+
+    await this.startConnection();
 
     console.log('Home hub connection started');
     this._hubConnection?.on('RoomsUpdated', (rooms: Room[]) => {
@@ -56,6 +55,17 @@ export class HomeService {
     } catch (e) {
       console.log('Error creating room: ' + e);
       return null;
+    }
+  }
+
+  private async startConnection(): Promise<void> {
+    if (!this._hubConnection) return;
+    try {
+      await this._hubConnection.start();
+      this.isConnected = true;
+    } catch (e) {
+      console.log('Error while starting connection: ' + e);
+      setTimeout(() => this.startConnection(), 5000);
     }
   }
 }

@@ -22,12 +22,11 @@ export class AdminService {
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl(this.baseUrl + 'adminHub')
       .build();
-    try {
-      await this.hubConnection.start();
-    } catch (e) {
-      console.log('Error while starting connection: ' + e);
-      return;
-    }
+    this.hubConnection.onclose(() => {
+      setTimeout(() => this.startConnection(), 5000);
+    });
+
+    await this.startConnection();
 
     console.log('Admin hub connection started');
     this.hubConnection?.on('Ping', (data) => {
@@ -116,6 +115,16 @@ export class AdminService {
       await this.hubConnection.invoke('UpdateMaxGuesses', maxGuesses);
     } catch (e) {
       console.log('Error updating max guesses: ' + e);
+    }
+  }
+
+  private async startConnection(): Promise<void> {
+    if (!this.hubConnection) return;
+    try {
+      await this.hubConnection.start();
+    } catch (e) {
+      console.log('Error while starting connection: ' + e);
+      setTimeout(() => this.startConnection(), 5000);
     }
   }
 
