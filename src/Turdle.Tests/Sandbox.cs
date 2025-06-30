@@ -16,11 +16,17 @@ namespace Turdle.Tests
     {
         private readonly ChatGptClient _chatGptClient;
         private readonly WordService _wordService;
+        private readonly ImageGenerationClient _imageGenerationClient;
 
         public Sandbox()
         {
-            _chatGptClient = new ChatGptClient(Mock.Of<ILogger<ChatGptClient>>(), Mock.Of<IOptions<ChatGptSettings>>());
+            var optionsMock = new Mock<IOptions<ChatGptSettings>>();
+            optionsMock.Setup(o => o.Value).Returns(new ChatGptSettings
+            {
+            });
+            _chatGptClient = new ChatGptClient(Mock.Of<ILogger<ChatGptClient>>(), optionsMock.Object);
             _wordService = new WordService();
+            _imageGenerationClient = new ImageGenerationClient(Mock.Of<ILogger<ImageGenerationClient>>(), optionsMock.Object);
         }
 
         [Fact(Skip = "Manual test")]
