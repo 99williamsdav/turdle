@@ -26,7 +26,9 @@ export class TvComponent {
       return await this.router.navigate(['']);
 
     await this.gameService.setupConnection(roomCode);
-    await this.gameService.initGameData();
+    const success = await this.gameService.initGameData();
+    if (!success)
+      return await this.router.navigate(['']);
     await this.gameService.registerTvConnection();
 
     return null;
