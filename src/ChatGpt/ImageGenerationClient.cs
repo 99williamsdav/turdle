@@ -31,8 +31,7 @@ namespace ChatGpt
 
         public async Task<string?> GenerateImage(
             string prompt,
-            int n = 1,
-            ImageSize size = ImageSize.Square,
+            ImageSize size = ImageSize.DallE2Medium,
             ImageQuality quality = ImageQuality.Auto,
             string model = Model,
             bool transparentBackground = true)
@@ -40,15 +39,17 @@ namespace ChatGpt
             var request = new ImageGenerationRequest(
                 model,
                 prompt,
-                n,
-                size.ToApiString(),
-                quality.ToApiString(),
-                transparentBackground);
+                1,
+                size.ToApiString()
+                //"standard" // quality.ToApiString(),
+                //transparentBackground,
+                //"low"
+                );
             _logger.LogInformation("Calling OpenAI Image Generation API.");
 
             var response = await SendRequest<ImageGenerationRequest, ImageGenerationResponse>(ImageGenerationApiUri, request);
 
-            return response.data.FirstOrDefault()?.url;
+            return response.data?.FirstOrDefault()?.url;
         }
 
         private async Task<TResponse> SendRequest<TRequest, TResponse>(string url, TRequest request)
@@ -67,18 +68,23 @@ namespace ChatGpt
             string model,
             string prompt,
             int n,
-            string size,
-            string quality,
-            bool transparent);
+            string size
+            //string quality
+            //bool transparent,
+            //string moderation
+            );
         private record ImageGenerationResponse(ImageData[] data);
-        private record ImageData(string url);
+        private record ImageData(string url, string? revised_prompt);
     }
 
     public enum ImageSize
     {
-        Square,
-        Landscape,
-        Portrait,
+        DallE2Small,
+        DallE2Medium,
+        DallE2Large,
+        DallE3Square,
+        DallE3Landscape,
+        DallE3Portrait,
         Auto
     }
 
@@ -94,9 +100,12 @@ namespace ChatGpt
     {
         public static string ToApiString(this ImageSize size) => size switch
         {
-            ImageSize.Square => "1024x1024",
-            ImageSize.Landscape => "1536x1024",
-            ImageSize.Portrait => "1024x1536",
+            ImageSize.DallE2Small => "256x256",
+            ImageSize.DallE2Medium => "512x512",
+            ImageSize.DallE2Large => "1024x1024",
+            ImageSize.DallE3Square => "1024x1024",
+            ImageSize.DallE3Landscape => "1792x1024",
+            ImageSize.DallE3Portrait => "1024x1792",
             _ => "auto"
         };
 
