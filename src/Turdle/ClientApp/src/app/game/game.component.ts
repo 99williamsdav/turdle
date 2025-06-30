@@ -43,7 +43,11 @@ export class GameComponent {
       return await this.router.navigate(['/']);
 
     await this.gameService.setupConnection(roomCode);
-    await this.gameService.initGameData();
+    const initSuccess = await this.gameService.initGameData();
+    if (!initSuccess) {
+      this.toastService.error('Room does not exist');
+      return await this.router.navigate(['/']);
+    }
 
     this.setInnerWidth();
 

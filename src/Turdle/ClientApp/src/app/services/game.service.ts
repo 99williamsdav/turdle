@@ -134,16 +134,19 @@ export class GameService {
     });
   }
 
-  public async initGameData(): Promise<void> {
+  public async initGameData(): Promise<boolean> {
     this.http.get<AliasInfo>(this.baseUrl + 'getpreviousalias').subscribe(async result => {
-      //this.previousAliasInfo = result;
       this._previousAliasInfo.next(result);
     } );
 
-    this.http.get<RoundState>(this.baseUrl + 'getgamestate', { params: new HttpParams().set('roomCode', this.roomCode) })
-      .subscribe(async result => {
-        this.roundState = result;
-      }, error => console.error(error));
+    try {
+      this.roundState = await this.http
+        .get<RoundState>(this.baseUrl + 'getgamestate', { params: new HttpParams().set('roomCode', this.roomCode) })
+        .toPromise();
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
 
     this.http.get<GameParameters>(this.baseUrl + 'getgameparameters', { params: new HttpParams().set('roomCode', this.roomCode) })
       .subscribe(async result => {
@@ -152,7 +155,6 @@ export class GameService {
 
     this.http.get<ChatMessage[]>(this.baseUrl + 'getchatmessages', { params: new HttpParams().set('roomCode', this.roomCode) })
       .subscribe(async result => {
-        // TODO merge with any already received?
         this.chatMessages = result;
       }, error => console.error(error));
 
@@ -161,6 +163,7 @@ export class GameService {
     }, error => console.error(error));
 
     this.updatePointSchedule();
+    return true;
   }
 
   private hydrateKnownWords(): void {
