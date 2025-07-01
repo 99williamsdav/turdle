@@ -74,6 +74,10 @@ jobs:
           RELEASE_DIR=/var/www/turdle/releases/$VERSION
           mkdir -p $RELEASE_DIR
           tar -C $RELEASE_DIR -xvf $TARGET_DIR/turdle_${{ env.VERSION }}.tar
+          if [ -d /var/www/turdle/staging/wwwroot/avatar-cache ]; then
+            mkdir -p $RELEASE_DIR/wwwroot/avatar-cache
+            cp -r /var/www/turdle/staging/wwwroot/avatar-cache/* $RELEASE_DIR/wwwroot/avatar-cache/ || true
+          fi
           cp /var/www/turdle/appsettings*.json $RELEASE_DIR/
           ln -sfn $RELEASE_DIR /var/www/turdle/staging
           sudo systemctl restart kestrel-turdle-staging
