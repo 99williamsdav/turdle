@@ -1,5 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Microsoft.AspNetCore.SignalR;
+using System.Reflection;
+using System.IO;
 using Turdle.Bots;
 using Turdle.Hubs;
 using Turdle.Models;
@@ -10,8 +12,11 @@ namespace Turdle;
 
 public class RoomManager
 {
-    private static Random _random = new Random();
+    private static readonly Random _random = new Random();
     private const string RoomCodeCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    private readonly string[] _adjectives;
+    private readonly string[] _animals;
     
     private readonly ILogger<RoomManager> _logger;
     private readonly IHubContext<GameHub> _gameHubContext;
@@ -42,6 +47,18 @@ public class RoomManager
         _homeHubContext = homeHubContext;
         _botFactory = botFactory;
         _avatarService = avatarService;
+
+        var assembly = Assembly.GetExecutingAssembly();
+        using (var stream = assembly.GetManifestResourceStream("Turdle.Resources.Adjectives.txt"))
+        using (var reader = new StreamReader(stream!))
+        {
+            _adjectives = reader.ReadToEnd().Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        }
+        using (var stream = assembly.GetManifestResourceStream("Turdle.Resources.Animals.txt"))
+        using (var reader = new StreamReader(stream!))
+        {
+            _animals = reader.ReadToEnd().Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+        }
 
         _fakeReadyBoard = new Board();
         _fakeReadyBoard.AddRow("EVERY", "START", null, null, 1, pointService);
@@ -128,12 +145,19 @@ public class RoomManager
 
     private string GenerateRoomCode()
     {
-        var roomCode = "";
-        for (var i = 0; i < 5; i++)
+        // Keep the original 5 letter code generation for reference, but this path is never taken.
+        if (false)
         {
-            roomCode += RoomCodeCharacters[_random.Next(0, RoomCodeCharacters.Length)];
+            var code = "";
+            for (var i = 0; i < 5; i++)
+            {
+                code += RoomCodeCharacters[_random.Next(RoomCodeCharacters.Length)];
+            }
+            return code;
         }
-        
-        return roomCode;
+
+        var adjective = _adjectives[_random.Next(_adjectives.Length)];
+        var animal = _animals[_random.Next(_animals.Length)];
+        return adjective + animal;
     }
 }
