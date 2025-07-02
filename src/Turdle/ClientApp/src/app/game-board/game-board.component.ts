@@ -23,6 +23,7 @@ export class GameBoardComponent {
   @Input() currentExpectedGuessCount: number | undefined;
   @Input() nextGuessDeadline: Date | null | undefined;
   @Input() guessTimeLimitMs: number | null | undefined;
+  @Input() avatarPath: string | null | undefined;
   public secondsUntilGuessDeadline: number | null = null;
   public deadlinePct: number | null = null;
   private timerSubscription: Subscription | null = null;

@@ -2,8 +2,10 @@
 <div class="row" *ngIf="board != null">
 
   <div class="col-md-12">
+    <div class="board-wrapper">
+      <img *ngIf="avatarPath" [src]="avatarPath" class="board-avatar" alt="avatar" />
 
-    <table class="table word-length-{{ wordLength }}" [ngClass]="{ 'player-board': isPlayer, 'mini-board': !isPlayer }">
+      <table class="table word-length-{{ wordLength }}" [ngClass]="{ 'player-board': isPlayer, 'mini-board': !isPlayer }">
       <tbody>
       <div class="time-limit-line" *ngIf="deadlinePct != null && board.status == 'Playing'" [ngStyle]="{'top': deadlinePct + '%'}"></div>
 
@@ -72,6 +74,7 @@
       </tr>
       </tbody>
     </table>
+    </div>
 
   </div>
 

@@ -85,7 +85,7 @@
       </div>
       <div *ngIf="roundState.status == 'Ready'">
         <!--        <button class="btn btn-success" (click)="startGame()">Start!</button>-->
-        <game-board *ngIf="fakeReadyGameBoard != null" [board]="fakeReadyGameBoard" [currentWord]="fakeReadyGameWord" [wordLength]="5" [maxGuesses]="6"></game-board>
+        <game-board *ngIf="fakeReadyGameBoard != null" [board]="fakeReadyGameBoard" [currentWord]="fakeReadyGameWord" [wordLength]="5" [maxGuesses]="6" [avatarPath]="currentPlayer?.avatarPath"></game-board>
         <keyboard *ngIf="fakeReadyGameBoard != null" [currentBoard]="fakeReadyGameBoard" (keyPress)="clickFakeReadyKey($event)"></keyboard>
       </div>
     </div>
@@ -120,10 +120,11 @@
           </h4>
         </div>
 
-        <game-board [board]="player.board" [wordLength]="roundState.wordLength" 
+        <game-board [board]="player.board" [wordLength]="roundState.wordLength"
                 [currentExpectedGuessCount]="player.board?.currentExpectedGuessCount"
                 [nextGuessDeadline]="player.board?.nextGuessDeadline"
-                [guessTimeLimitMs]="player.board?.guessTimeLimitMs" [maxGuesses]="roundState.maxGuesses"></game-board>
+                [guessTimeLimitMs]="player.board?.guessTimeLimitMs" [maxGuesses]="roundState.maxGuesses"
+                [avatarPath]="player.avatarPath"></game-board>
 
       </div>
 
@@ -159,7 +160,8 @@
 
     <game-board [board]="currentBoard" [currentWord]="currentWord" [guessDeadlines]="currentBoard.guessDeadlines" [wordLength]="roundState.wordLength"
                 [currentExpectedGuessCount]="currentBoard.currentExpectedGuessCount" [nextGuessDeadline]="currentBoard.nextGuessDeadline"
-                [guessTimeLimitMs]="currentBoard.guessTimeLimitMs" [maxGuesses]="roundState.maxGuesses"></game-board>
+                [guessTimeLimitMs]="currentBoard.guessTimeLimitMs" [maxGuesses]="roundState.maxGuesses"
+                [avatarPath]="currentPlayer?.avatarPath"></game-board>
 
     <keyboard [currentBoard]="currentBoard" (keyPress)="clickKey($event)"></keyboard>
 
@@ -200,10 +202,11 @@
             <span class="badge alert-info">{{ player.board?.points }}pts</span>
           </h4>
         </div>
-        <game-board [board]="player.board" [wordLength]="roundState.wordLength" 
+        <game-board [board]="player.board" [wordLength]="roundState.wordLength"
                 [currentExpectedGuessCount]="player.board?.currentExpectedGuessCount"
                 [nextGuessDeadline]="player.board?.nextGuessDeadline"
-                [guessTimeLimitMs]="player.board?.guessTimeLimitMs" [maxGuesses]="roundState.maxGuesses"></game-board>
+                [guessTimeLimitMs]="player.board?.guessTimeLimitMs" [maxGuesses]="roundState.maxGuesses"
+                [avatarPath]="player.avatarPath"></game-board>
       </div>
 
     </div>
@@ -223,10 +226,11 @@
           <span class="badge alert-info">{{ player.board?.points }}pts</span>
         </h4>
       </div>
-      <game-board [board]="player.board" [wordLength]="roundState.wordLength" 
+      <game-board [board]="player.board" [wordLength]="roundState.wordLength"
                 [currentExpectedGuessCount]="player.board?.currentExpectedGuessCount"
                 [nextGuessDeadline]="player.board?.nextGuessDeadline"
-                [guessTimeLimitMs]="player.board?.guessTimeLimitMs" [maxGuesses]="roundState.maxGuesses"></game-board>
+                [guessTimeLimitMs]="player.board?.guessTimeLimitMs" [maxGuesses]="roundState.maxGuesses"
+                [avatarPath]="player.avatarPath"></game-board>
     </div>
   </div>
 
