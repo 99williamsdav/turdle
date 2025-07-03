@@ -610,6 +610,7 @@ export interface Player {
   isConnected: boolean;
   rank: number;
   isJointRank: boolean;
+  avatarPath: string | null;
   board: Board | null;
   joinedOn: string;
   registeredAt: string;
