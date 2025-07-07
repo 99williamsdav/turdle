@@ -21,7 +21,7 @@
   <div class="row">
     <div class="col-md-8 offset-md-2">
       <form [formGroup]="joinForm" (ngSubmit)="joinRoom()">
-        <div class="input-group">
+        <div class="input-group flex-nowrap">
           <input type="text" class="form-control massive-input" placeholder="Room code" formControlName="roomCode" required>
           <button class="btn btn-success btn-lg massive-button" type="submit" [disabled]="!joinForm.valid">Join Room</button>
         </div>
