@@ -2,6 +2,8 @@ using System.Configuration;
 using System.Text.Json.Serialization;
 using ChatGpt;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.ResponseCompression;
+using System.IO.Compression;
 using Turdle;
 using Turdle.Bots;
 using Turdle.Hubs;
@@ -12,13 +14,19 @@ builder.Logging.AddLog4Net();
 
 // Add services to the container.
 
-builder.Services.AddCors(options => 
-{ 
+builder.Services.AddCors(options =>
+{
     options.AddPolicy("CorsPolicy", p => p
         .WithOrigins("https://localhost:44419")
         .AllowAnyMethod()
         .AllowAnyHeader()
-        .AllowCredentials()); 
+        .AllowCredentials());
+});
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
 });
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
@@ -68,6 +76,7 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
 app.UseHttpsRedirection();
+app.UseResponseCompression();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseCors("CorsPolicy");
