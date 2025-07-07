@@ -14,5 +14,7 @@
   padding: 1.5rem;
   border-radius: 1.5rem;
   border: 2px solid #33ccff;
-  width: 100%;
+  /* Let bootstrap flex rules size the input so the join button stays
+     on the same line */
+  width: auto;
 }
