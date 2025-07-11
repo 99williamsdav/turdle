@@ -131,7 +131,7 @@
       <tr *ngFor="let player of roundState.players">
         <th>
           <span class="alias-avatar-wrapper">
-            {{ player.alias }}
+            {{ player.alias | botEmoji: player.isBot }}
             <img *ngIf="player.avatarPath" [src]="player.avatarPath" class="alias-avatar-preview" alt="avatar" />
           </span>
         </th>
