@@ -129,7 +129,12 @@
         </tr>
       </thead>
       <tr *ngFor="let player of roundState.players">
-        <th>{{ player.alias }}</th>
+        <th>
+          <span class="alias-avatar-wrapper">
+            {{ player.alias }}
+            <img *ngIf="player.avatarPath" [src]="player.avatarPath" class="alias-avatar-preview" alt="avatar" />
+          </span>
+        </th>
         <td>{{ player.connectionId }}</td>
         <td>{{ player.ready ? '✅' : '' }}</td>
         <td>{{ player.isConnected ? '' : '🔌' }}</td>

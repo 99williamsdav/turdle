@@ -2,3 +2,24 @@ tr.selected {
   background-color: deeppink;
   color: aqua;
 }
+
+.alias-avatar-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.alias-avatar-preview {
+  display: none;
+  position: absolute;
+  top: 1.5em;
+  left: 0;
+  width: 64px;
+  height: 64px;
+  border: 1px solid #ccc;
+  background-color: white;
+  z-index: 1000;
+}
+
+.alias-avatar-wrapper:hover .alias-avatar-preview {
+  display: block;
+}
