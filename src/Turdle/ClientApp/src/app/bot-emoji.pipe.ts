@@ -4,7 +4,11 @@ import { Pipe, PipeTransform } from '@angular/core';
   name: 'botEmoji'
 })
 export class BotEmojiPipe implements PipeTransform {
-  transform(alias: string, isBot: boolean | null | undefined): string {
+  transform(alias: string | null | undefined, isBot: boolean | null | undefined): string {
+    if (!alias) {
+      return '';
+    }
+
     return isBot ? `${alias} 🤖` : alias;
   }
 }
