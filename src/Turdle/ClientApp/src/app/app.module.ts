@@ -19,6 +19,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import {AdminService} from "./services/admin.service";
 import {TvComponent} from "./tv/tv.component";
 import {HumanizePipe} from "./humanize.pipe";
+import {BotEmojiPipe} from "./bot-emoji.pipe";
 import {CookieModule} from "ngx-cookie";
 import {FormatMillisecondsPipe} from "./format-milliseconds";
 import TrackByUtils from "./track-by.utils";
@@ -44,6 +45,7 @@ import { GameParamsComponent } from './game-params/game-params.component';
     TvComponent,
     PointScheduleComponent,
     GameParamsComponent,
+    BotEmojiPipe,
     NotAliasPipe,
     ToastsContainer
   ],

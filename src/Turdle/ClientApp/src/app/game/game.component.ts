@@ -227,7 +227,10 @@ export class GameComponent {
     return this.gameService.chatMessages;
   }
   get typingPlayers(): string[] {
-    return this.gameService.typingAliases;
+    return this.gameService.typingAliases.map(alias => {
+      const isBot = this.roundState.players.find(p => p.alias === alias)?.isBot;
+      return isBot ? `${alias} 🤖` : alias;
+    });
   }
 
   // UTILS

@@ -5,7 +5,7 @@
       <table class='table table' aria-labelledby="tableLabel">
         <tbody>
         <tr *ngFor="let player of roundState.players; trackBy: trackByUtils.trackByPlayer">
-          <td>{{ player.alias }}</td>
+          <td>{{ player.alias | botEmoji: player.isBot }}</td>
           <td>{{ player.ready ? '✅' : '' }}</td>
           <td>{{ player.isConnected ? '' : '🔌' }}</td>
         </tr>
@@ -26,7 +26,7 @@
               {{ player.board?.isJointRank ? '=' : '' }}{{ player.board?.rank }}<sup>{{ player.board?.rank | ordinal }}</sup>
             </span>
           </h4>
-          <h4>{{ player.alias }}{{ player.isConnected ? '' : '🔌' }}</h4>
+          <h4>{{ player.alias | botEmoji: player.isBot }}{{ player.isConnected ? '' : '🔌' }}</h4>
           <h4>
             <span class="badge alert-info">{{ player.board?.points }}pts</span>
           </h4>
@@ -55,7 +55,7 @@
               {{ player.isJointRank ? '=' : '' }}{{ player.rank }}<sup>{{ player.rank | ordinal:false }}</sup>
             </span>
             </td>
-            <th>{{ player.alias }}</th>
+            <th>{{ player.alias | botEmoji: player.isBot }}</th>
             <th>{{ player.points }}</th>
             <th>{{ player.board?.points | showPlus }}</th>
           </tr>
