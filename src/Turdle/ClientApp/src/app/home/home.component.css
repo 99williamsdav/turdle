@@ -38,3 +38,12 @@
   font-size: 5rem;
   text-shadow: 2px 2px #33ccff;
 }
+
+.howto-tile {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  margin-right: 0.1rem;
+  font-weight: bold;
+  border: 1px solid black;
+  text-align: center;
+}
