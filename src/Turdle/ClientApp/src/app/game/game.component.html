@@ -72,7 +72,7 @@
           <table class="table table-hover">
             <tbody>
               <tr *ngFor="let chatMessage of chatMessages" (click)="prepopulateChat(chatMessage.alias)" class="clickable">
-                <th class="text-nowrap">{{ chatMessage.alias | botEmoji: (roundState.players.find(p => p.alias == chatMessage.alias)?.isBot) }}</th>
+                <th class="text-nowrap">{{ chatMessage.alias }}</th>
                 <td>{{ chatMessage.message }}</td>
               </tr>
             </tbody>
