@@ -12,9 +12,9 @@
       <table class='table' aria-labelledby="tableLabel">
         <tbody>
         <tr *ngFor="let player of roundState.players; trackBy: trackByUtils.trackByPlayer">
-          <td *ngIf="player.alias != currentPlayer?.alias">{{ player.alias }}</td>
+          <td *ngIf="player.alias != currentPlayer?.alias">{{ player.alias | botEmoji: player.isBot }}</td>
           <th *ngIf="player.alias == currentPlayer?.alias">
-            {{ player.alias }}
+            {{ player.alias | botEmoji: player.isBot }}
             <button class="btn btn-sm btn-outline-info" (click)="logOut()">Change</button>
           </th>
           <td>{{ player.ready ? '✅' : '' }}</td>
@@ -72,7 +72,7 @@
           <table class="table table-hover">
             <tbody>
               <tr *ngFor="let chatMessage of chatMessages" (click)="prepopulateChat(chatMessage.alias)" class="clickable">
-                <th class="text-nowrap">{{ chatMessage.alias }}</th>
+                <th class="text-nowrap">{{ chatMessage.alias | botEmoji: (roundState.players.find(p => p.alias == chatMessage.alias)?.isBot) }}</th>
                 <td>{{ chatMessage.message }}</td>
               </tr>
             </tbody>
@@ -114,7 +114,7 @@
               {{ player.board?.isJointRank ? '=' : '' }}{{ player.board?.rank }}<sup>{{ player.board?.rank | ordinal }}</sup>
             </span>
           </h4>
-          <h4>{{ player.alias }}{{ player.isConnected ? '' : '🔌' }}</h4>
+          <h4>{{ player.alias | botEmoji: player.isBot }}{{ player.isConnected ? '' : '🔌' }}</h4>
           <h4>
             <span class="badge alert-info">{{ player.board?.points }}pts</span>
           </h4>
@@ -142,7 +142,7 @@
               {{ currentPlayer?.board?.isJointRank ? '=' : '' }}{{ currentPlayer?.board?.rank }}<sup>{{ currentPlayer?.board?.rank | ordinal:false }}</sup>
             </span>
           </h3>
-          <h3 *ngIf="roundState.status != 'Finished'">Go {{ currentPlayer?.alias }}!</h3>
+          <h3 *ngIf="roundState.status != 'Finished'">Go {{ currentPlayer?.alias | botEmoji: currentPlayer?.isBot }}!</h3>
           <!-- TODO Limit this to admin only-->
           <h3 *ngIf="roundState.status == 'Finished'"><a class="btn btn-outline-success btn-lg" (click)="startGame()">Start Round</a></h3>
           <h3>
@@ -197,7 +197,7 @@
               {{ player.board?.isJointRank ? '=' : '' }}{{ player.board?.rank }}<sup>{{ player.board?.rank | ordinal:false }}</sup>
             </span>
           </h4>
-          <h4>{{ player.alias }}{{ player.isConnected ? '' : '🔌' }}</h4>
+          <h4>{{ player.alias | botEmoji: player.isBot }}{{ player.isConnected ? '' : '🔌' }}</h4>
           <h4>
             <span class="badge alert-info">{{ player.board?.points }}pts</span>
           </h4>
@@ -221,7 +221,7 @@
               {{ player.board?.isJointRank ? '=' : '' }}{{ player.board?.rank }}<sup>{{ player.board?.rank | ordinal:false }}</sup>
             </span>
         </h4>
-        <h4>{{ player.alias }}{{ player.isConnected ? '' : '🔌' }}</h4>
+        <h4>{{ player.alias | botEmoji: player.isBot }}{{ player.isConnected ? '' : '🔌' }}</h4>
         <h4>
           <span class="badge alert-info">{{ player.board?.points }}pts</span>
         </h4>
@@ -259,7 +259,7 @@
                 {{ player.isJointRank ? '=' : '' }}{{ player.rank }}<sup>{{ player.rank | ordinal:false }}</sup>
               </span>
             </td>
-            <th>{{ player.alias }}</th>
+            <th>{{ player.alias | botEmoji: player.isBot }}</th>
             <th>{{ player.points }}</th>
             <th>{{ player.board?.points | showPlus }}</th>
           </tr>
