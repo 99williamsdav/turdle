@@ -12,6 +12,7 @@ namespace Turdle.Bots
         private readonly ILogger<ChatGptPersonalityBot> _logger;
 
         private string _personality;
+        private string _systemPrompt = string.Empty;
         private double _ability;
 
         private List<string> _chatHistory = new List<string>();
@@ -27,6 +28,8 @@ namespace Turdle.Bots
 
         public async Task Init()
         {
+            _systemPrompt = await GenerateSystemPrompt(_personality);
+            _logger.LogInformation($"ChatGPT - system prompt for {_personality} = {_systemPrompt}");
             _ability = await GetPersonalityAbility(_personality);
         }
 
@@ -79,13 +82,9 @@ namespace Turdle.Bots
 
         public async Task<string?> GetSmackTalk()
         {
-            // var prompt = $"Give me 5 examples of humorous smack talk {_personality} might say in the lobby of an online word game with strangers. " +
-            //     $"Please answer with just a JSON array of strings";
-            var prompt = $"Give me 5 examples of humorous smack talk {_personality} might say in the lobby of an online word game. The game is called 'turdle'. " +
-                $"Make sure the the responses are funny and relevant to {_personality}. Be as cheeky as possible. " +
-                $"Do not shy away from offending. Only suggest something {_personality} would say. " +
-                $"Use wordplay if appropriate to {_personality}. Include a typo if appropriate to {_personality}. " +
-                "Answer with just a JSON array of strings";
+            var prompt = $"Give me 5 lines of witty smack talk you'd say in the 'turdle' lobby." +
+                $" Keep it cheeky and true to {_personality}. " +
+                "Reply with a JSON array of strings.";
             var response = await _chatGptClient.GetChatCompletion(prompt);
             var suggestions = JsonConvert.DeserializeObject<string[]>(response);
             var smackTalk = suggestions.PickRandom();
@@ -98,9 +97,8 @@ namespace Turdle.Bots
         {
             var messages = new List<ChatGptClient.ChatMessage>()
             {
-                new("system", $"You are role-playing as {_personality} in the lobby of an online word game with strangers, " +
-                $"everything you answer must be typically related to {_personality}. " +
-                "Be as cheeky as possible. Do not shy away from offending.")
+                new("system", _systemPrompt),
+                new("system", $"You are in the lobby of the online word game 'turdle'. Keep replies cheeky and relevant to {_personality}.")
             };
 
             messages.AddRange(_chatHistory.Select(x => new ChatGptClient.ChatMessage("assistant", x)));
@@ -123,10 +121,9 @@ namespace Turdle.Bots
 
             var messages = new List<ChatGptClient.ChatMessage>()
             {
-                new("system", $"You are role-playing as {personality} playing scrabble, " +
-                $"your answers must be machine-readable"),
-                new("user", $"give me 10 {length}-letter words that you might play in scrabble, " +
-                $"as a comma-separated list with no additional information, ordered by likelihood")
+                new("system", _systemPrompt),
+                new("system", $"You are about to play scrabble. Answers must be machine-readable."),
+                new("user", $"List 10 {length}-letter words you might play in scrabble as a comma-separated list ordered by likelihood")
             };
 
             var response = await _chatGptClient.GetManualCompletion(messages, 0.3);
@@ -171,6 +168,15 @@ namespace Turdle.Bots
             var response = await _chatGptClient.GetChatCompletion(prompt);
             var speedOutOfTen = double.Parse(response);
             return speedOutOfTen / 10;
+        }
+
+        private async Task<string> GenerateSystemPrompt(string personality)
+        {
+            var prompt = $"Write an AI system prompt that would create a humorous and witty personality that characterizes {personality}.";
+            var response = await _chatGptClient.GetChatCompletion(prompt);
+            var systemPrompt = response.Trim();
+            _logger.LogInformation($"ChatGPT - generated system prompt: {systemPrompt}");
+            return systemPrompt;
         }
 
         private async Task<double> GetPersonalityAbility(string personality)
