@@ -28,6 +28,16 @@ public class GameController : ControllerBase
     }
 
     [HttpGet]
+    [Route("GetRoom")]
+    public Task<RoomSummary> GetRoom(string roomCode)
+    {
+        using (LogContext.Create(_logger, "API", "GetRoom"))
+        {
+            return Task.FromResult(_roomManager.GetRoom(roomCode).ToSummary());
+        }
+    }
+
+    [HttpGet]
     [Route("GetGameState")]
     public Task<IRoundState<IPlayer<IBoard<IRow<ITile>, ITile>, IRow<ITile>, ITile>, IBoard<IRow<ITile>, ITile>, IRow<ITile>, ITile>> GetGameState(string roomCode)
     {

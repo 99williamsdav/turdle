@@ -87,23 +87,23 @@ public class Room
         _botFactory = botFactory;
         _avatarService = avatarService;
         _roomAvatarService = roomAvatarService;
+    }
 
-        Task.Run(async () =>
+    public async Task Init()
+    {
+        try
         {
-            try
+            var path = await _roomAvatarService.GetOrGenerateImage(_roomCode);
+            if (path != null)
             {
-                var path = await _roomAvatarService.GetOrGenerateImage(roomCode);
-                if (path != null)
-                {
-                    ImagePath = path;
-                    await _roomSummaryUpdatedCallback();
-                }
+                ImagePath = path;
+                await _roomSummaryUpdatedCallback();
             }
-            catch (Exception e)
-            {
-                _logger.LogError(e, $"Error generating room image for {roomCode}");
-            }
-        });
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Error generating room image for {_roomCode}");
+        }
     }
 
     public RoomSummary ToSummary()

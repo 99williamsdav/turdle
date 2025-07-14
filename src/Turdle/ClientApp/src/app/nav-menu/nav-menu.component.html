@@ -40,6 +40,10 @@
             </a>
           </li>
         </ul>
+        <div class="d-flex align-items-center room-header-info" *ngIf="roomCode">
+          <img *ngIf="roomImagePath" [src]="roomImagePath" width="32" height="32" class="me-1" />
+          <span class="fw-bold">{{ roomCode }}</span>
+        </div>
       </div>
     </div>
   </nav>
