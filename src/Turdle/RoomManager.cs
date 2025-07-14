@@ -82,6 +82,7 @@ public class RoomManager
             roomCode, BroadcastRooms, _botFactory, _avatarService, _roomAvatarService);
         _rooms.TryAdd(roomCode, room);
 
+        await room.Init();
         await BroadcastRooms();
         return roomCode;
     }

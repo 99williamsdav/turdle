@@ -43,3 +43,7 @@ html {
   top: 50%;
   transform: translateY(-50%);
 }
+
+.room-header-info {
+  margin-left: 1rem;
+}

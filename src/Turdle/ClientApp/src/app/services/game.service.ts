@@ -153,10 +153,9 @@ export class GameService {
         this.gameParams = result;
       }, error => console.error(error));
 
-    this.http.get<Room[]>(this.baseUrl + 'getrooms')
+    this.http.get<Room>(this.baseUrl + 'getroom', { params: new HttpParams().set('roomCode', this.roomCode) })
       .subscribe(result => {
-        const room = result.find(r => r.roomCode === this.roomCode);
-        this.roomImagePath = room ? room.imagePath : null;
+        this.roomImagePath = result.imagePath;
       }, error => console.error(error));
 
     this.http.get<ChatMessage[]>(this.baseUrl + 'getchatmessages', { params: new HttpParams().set('roomCode', this.roomCode) })

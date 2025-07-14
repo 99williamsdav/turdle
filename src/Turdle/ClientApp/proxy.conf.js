@@ -9,6 +9,7 @@ const PROXY_CONFIG = [
       "/getgamestate",
       "/getgameparameters",
       "/getrooms",
+      "/getroom",
       "/getpreviousalias",
       "/getpointschedule",
       "/getchatmessages",
