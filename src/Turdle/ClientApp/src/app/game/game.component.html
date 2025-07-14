@@ -5,7 +5,7 @@
 
     <div class="col-md-3">
       <h2 class="room-code">
-        <img *ngIf="roomImagePath" [src]="roomImagePath" width="32" height="32" class="me-1" />
+          <img *ngIf="roomImagePath" [src]="roomImagePath" class="me-1 room-image" />
         {{ roomCode }}
         <span (click)="copyUrl()">🔗</span>
       </h2>
