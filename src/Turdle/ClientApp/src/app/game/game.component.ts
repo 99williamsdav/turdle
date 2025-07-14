@@ -208,6 +208,9 @@ export class GameComponent {
   get currentBoard(): Board | null {
     return this.gameService.currentBoard;
   }
+  get roomImagePath(): string | null {
+    return this.gameService.roomImagePath;
+  }
   get currentWord(): string {
     return this.gameService.currentWord;
   }

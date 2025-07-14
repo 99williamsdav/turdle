@@ -47,6 +47,7 @@ builder.Services.AddSingleton<WordService>();
 builder.Services.AddSingleton<ChatGptClient>();
 builder.Services.AddSingleton<ImageGenerationClient>();
 builder.Services.AddSingleton<PersonalityAvatarService>();
+builder.Services.AddSingleton<RoomAvatarService>();
 builder.Services.AddSingleton<BotFactory>();
 builder.Services.AddSingleton<IPointService, PointService>();
 builder.Services.AddSingleton<IWordAnalysisService, WordAnalysisService>();

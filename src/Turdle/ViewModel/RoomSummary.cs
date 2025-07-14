@@ -5,6 +5,8 @@ namespace Turdle.ViewModel;
 public class RoomSummary
 {
     public string RoomCode { get; set; }
+
+    public string? ImagePath { get; set; }
     
     public MaskedPlayer[] Players { get; set; }
     
