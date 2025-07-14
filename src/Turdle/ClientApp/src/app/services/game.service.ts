@@ -9,6 +9,7 @@ import {CookieService} from "ngx-cookie";
 })
 export class GameService {
   public roomCode: string = '';
+  public roomImagePath: string | null = null;
 
   public playerAlias: string = '';
   public pointSchedule: PointSchedule | null = null;
@@ -150,6 +151,12 @@ export class GameService {
     this.http.get<GameParameters>(this.baseUrl + 'getgameparameters', { params: new HttpParams().set('roomCode', this.roomCode) })
       .subscribe(async result => {
         this.gameParams = result;
+      }, error => console.error(error));
+
+    this.http.get<Room[]>(this.baseUrl + 'getrooms')
+      .subscribe(result => {
+        const room = result.find(r => r.roomCode === this.roomCode);
+        this.roomImagePath = room ? room.imagePath : null;
       }, error => console.error(error));
 
     this.http.get<ChatMessage[]>(this.baseUrl + 'getchatmessages', { params: new HttpParams().set('roomCode', this.roomCode) })
@@ -697,6 +704,7 @@ export interface PointSchedule {
 export interface Room {
   createdOn: Date;
   roomCode: string;
+  imagePath: string | null;
   players: Player[];
   adminAlias: string;
   roundNumber: number;

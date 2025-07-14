@@ -31,6 +31,7 @@ public class Room
     private readonly IWordAnalysisService _wordAnalyst;
     private readonly BotFactory _botFactory;
     private readonly PersonalityAvatarService _avatarService;
+    private readonly RoomAvatarService _roomAvatarService;
 
     private readonly DateTime _createdOn = DateTime.Now;
 
@@ -50,6 +51,7 @@ public class Room
 
     private string? _adminConnectionId;
     private readonly string _roomCode;
+    public string? ImagePath { get; private set; }
 
     private readonly object _stateLock = new object();
     private readonly object _chatLock = new object();
@@ -68,7 +70,8 @@ public class Room
         string roomCode,
         Func<Task> roomSummaryUpdatedCallback,
         BotFactory botFactory,
-        PersonalityAvatarService avatarService)
+        PersonalityAvatarService avatarService,
+        RoomAvatarService roomAvatarService)
     {
         _hubContext = hubContext;
         _adminHubContext = adminHubContext;
@@ -83,6 +86,24 @@ public class Room
         _internalRoundState = new InternalRoundState(wordService.GetRandomWord(_gameParameters.AnswerList), _pointService, _gameParameters, _wordService);
         _botFactory = botFactory;
         _avatarService = avatarService;
+        _roomAvatarService = roomAvatarService;
+
+        Task.Run(async () =>
+        {
+            try
+            {
+                var path = await _roomAvatarService.GetOrGenerateImage(roomCode);
+                if (path != null)
+                {
+                    ImagePath = path;
+                    await _roomSummaryUpdatedCallback();
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"Error generating room image for {roomCode}");
+            }
+        });
     }
 
     public RoomSummary ToSummary()
@@ -91,6 +112,7 @@ public class Room
         {
             CreatedOn = _createdOn,
             RoomCode = _roomCode,
+            ImagePath = ImagePath,
             RoundNumber = _previousRoundStates.Count + 1,
             Players = _internalRoundState.Players.Select(x => x.Mask()).ToArray(),
             AdminAlias = _adminConnectionId != null && _playersByConnectionId.TryGetValue(_adminConnectionId, out var admin) 

@@ -27,6 +27,7 @@ public class RoomManager
     private readonly IWordAnalysisService _wordAnalyst;
     private readonly BotFactory _botFactory;
     private readonly PersonalityAvatarService _avatarService;
+    private readonly RoomAvatarService _roomAvatarService;
 
     private readonly Board _fakeReadyBoard;
     
@@ -36,7 +37,8 @@ public class RoomManager
     private readonly ConcurrentDictionary<string, Room> _rooms = new ConcurrentDictionary<string, Room>();
 
     public RoomManager(ILogger<RoomManager> logger, IHubContext<GameHub> gameHubContext, IHubContext<AdminHub> adminHubContext, IHubContext<HomeHub> homeHubContext,
-        WordService wordService, IPointService pointService, IWordAnalysisService wordAnalyst, BotFactory botFactory, PersonalityAvatarService avatarService)
+        WordService wordService, IPointService pointService, IWordAnalysisService wordAnalyst, BotFactory botFactory, PersonalityAvatarService avatarService,
+        RoomAvatarService roomAvatarService)
     {
         _logger = logger;
         _gameHubContext = gameHubContext;
@@ -47,6 +49,7 @@ public class RoomManager
         _homeHubContext = homeHubContext;
         _botFactory = botFactory;
         _avatarService = avatarService;
+        _roomAvatarService = roomAvatarService;
 
         var assembly = Assembly.GetExecutingAssembly();
         using (var stream = assembly.GetManifestResourceStream("Turdle.Resources.Adjectives.txt"))
@@ -76,7 +79,7 @@ public class RoomManager
         }
 
         var room = new Room(_gameHubContext, _adminHubContext, _wordService, _pointService, _logger, _wordAnalyst,
-            roomCode, BroadcastRooms, _botFactory, _avatarService);
+            roomCode, BroadcastRooms, _botFactory, _avatarService, _roomAvatarService);
         _rooms.TryAdd(roomCode, room);
 
         await BroadcastRooms();
