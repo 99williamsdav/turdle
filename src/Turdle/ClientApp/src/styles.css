@@ -35,3 +35,14 @@ code {
 .clickable {
   cursor: pointer;
 }
+.room-image {
+  width: 32px;
+  height: 32px;
+  transition: transform 0.2s ease;
+}
+.room-image:hover {
+  transform: scale(2.5);
+  z-index: 10;
+  position: relative;
+  cursor: zoom-in;
+}
