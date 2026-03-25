@@ -38,7 +38,7 @@ namespace Turdle.Bots
             const int maxRetries = 3;
             for (int i = 0; i < maxRetries; i++)
             {
-                var suggestions = await GetOpeningWordsByPersonality(_personality, wordLength);
+                var suggestions = await GetOpeningWordsByPersonality(wordLength);
 
                 var reasonableBotWords = _wordService.GetReasonableBotWords(wordLength);
                 var reasonableSuggestions = suggestions.Intersect(reasonableBotWords).ToArray();
@@ -113,7 +113,7 @@ namespace Turdle.Bots
         }
         
 
-        private async Task<string[]> GetOpeningWordsByPersonality(string personality, int length)
+        private async Task<string[]> GetOpeningWordsByPersonality(int length)
         {
             //var prompt = $"give me 10 {length}-letter words that {personality} might play in scrabble, " +
             //    $"as a comma-separated list with no additional information, ordered by likelihood";
@@ -122,8 +122,8 @@ namespace Turdle.Bots
             var messages = new List<ChatGptClient.ChatMessage>()
             {
                 new("system", _systemPrompt),
-                new("system", $"You are about to play scrabble. Answers must be machine-readable."),
-                new("user", $"List 10 {length}-letter words you might play in scrabble as a comma-separated list ordered by likelihood")
+                new("system", $"You are about to play wordle. Answers must be machine-readable."),
+                new("user", $"List 10 {length}-letter words you might open with in wordle as a comma-separated list ordered by likelihood")
             };
 
             var response = await _chatGptClient.GetManualCompletion(messages, 0.3);
@@ -172,7 +172,14 @@ namespace Turdle.Bots
 
         private async Task<string> GenerateSystemPrompt(string personality)
         {
-            var prompt = $"Write an AI system prompt that would create a humorous and witty personality that characterizes {personality}.";
+            return
+                $"You are role-playing as {personality} in an online word-based game based on Wordle, called Turdle. " +
+                $"The tone is humorous and light-hearted. " +
+                $"You are a caricature of {personality} - everything you say should be typically {personality}. " +
+                $"Don't shy away from adult, edgy or mildly offensive material. " +
+                $"Don't play the game as a normal person would - always play words associated with {personality}.";
+            var prompt = $"Write an AI system prompt that would create a humorous and witty personality that characterizes {personality}. " +
+                         $"Return only the usable prompt";
             var response = await _chatGptClient.GetChatCompletion(prompt);
             var systemPrompt = response.Trim();
             _logger.LogInformation($"ChatGPT - generated system prompt: {systemPrompt}");
@@ -200,7 +207,7 @@ namespace Turdle.Bots
         {
             personalities = personalities.Select(x => x.ToLower()).Distinct().ToArray();
             var csPersonalities = string.Join(",", personalities);
-            var prompt = $"Hypothetically how good might this comma-separated list of people be at a word game? " +
+            var prompt = $"Hypothetically how good might this comma-separated list of people be at Wordle? " +
                 $"Answer with just a JSON array with the properties 'person' and 'ability'. " +
                 $"The ability score should be a number between 1 and 10 where a toddler would be 1, shakespeare would be 10 " +
                 $"and an average adult would be 5\r\n{csPersonalities}";
