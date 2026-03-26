@@ -62,6 +62,7 @@ public class WordService
         return _acceptedWords.Contains(word);
     }
 
+    // TODO review the point of this because it's overly restrictive
     public string[] GetReasonableBotWords(int wordLength) => _botWords[wordLength];
 
     public string[] GetPossibleValidGuesses(Board board, int length) => GetPossibleValidGuesses(board.CorrectLetters,

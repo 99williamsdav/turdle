@@ -40,8 +40,9 @@ namespace Turdle.Bots
             {
                 var suggestions = await GetOpeningWordsByPersonality(wordLength);
 
-                var reasonableBotWords = _wordService.GetReasonableBotWords(wordLength);
-                var reasonableSuggestions = suggestions.Intersect(reasonableBotWords).ToArray();
+                //var reasonableBotWords = _wordService.GetReasonableBotWords(wordLength);
+                //var reasonableSuggestions = suggestions.Intersect(reasonableBotWords).ToArray();
+                var reasonableSuggestions = suggestions.Where(_wordService.IsWordAccepted).ToArray();
 
                 if (reasonableSuggestions.Length <= 1)
                 {
