@@ -16,12 +16,15 @@ public class Room
 {
     private const int StartCountdownSeconds = 5;
 
-    private static string[] _botPersonalities = new[] { "donald trump", "jesus", "a clown", "a child", "karl marx", 
+    private static readonly string[] BotPersonalities =
+    [
+        "donald trump", "jesus", "a clown", "a child", "karl marx", 
         "shakespeare", "martin luther king", "greta thunberg", "albert einstein", "santa", "a horrible person",
-        "maggie thatcher", "gollum", "david attenborough", "stephen hawking", "homer simpson",
+        "maggie thatcher", "gollum", "david attenborough", "homer simpson",
         "your mum", "your dad", "a silly goose", "a farmer", "dracula", "satan", "a sex pervert",
-        "cardi b", "churchill", "dr dre", "taylor swift", "jack the ripper", "elon musk", "bill gates", "nigel farage",
-        "barack obama", "the king", "an alcoholic", "pablo escobar", "lara croft", "a pirate", "gandhi", "freud" };
+        "churchill", "dr dre", "taylor swift", "jack the ripper", "elon musk", "bill gates", "nigel farage",
+        "barack obama", "the king", "an alcoholic", "pablo escobar", "lara croft", "a pirate", "gandhi"
+    ];
 
     private readonly ILogger<RoomManager> _logger;
     private readonly IHubContext<GameHub> _hubContext;
@@ -251,7 +254,7 @@ public class Room
         {
             if (string.IsNullOrEmpty(personality))
             {
-                var unchosenPersonalities = _botPersonalities.Except(_usedBotPersonalities).ToArray();
+                var unchosenPersonalities = BotPersonalities.Except(_usedBotPersonalities).ToArray();
                 personality = unchosenPersonalities.PickRandom();
             }
 
