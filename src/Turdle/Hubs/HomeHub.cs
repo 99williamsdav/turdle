@@ -39,7 +39,6 @@ public class HomeHub : Hub
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "CreateRoom"))
         {
-            _logger.LogInformation($"CreateRoom()");
             return await _roomManager.CreateRoom(Context.ConnectionId);
         }
     }

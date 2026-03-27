@@ -2,15 +2,15 @@
   "name": "turdle",
   "version": "0.0.0",
   "scripts": {
-    "ng": "ng",
+    "ng": "node --openssl-legacy-provider ./node_modules/@angular/cli/bin/ng",
     "prestart": "node aspnetcore-https",
     "start": "run-script-os",
-    "start:windows": "ng serve --port 44419 --ssl --ssl-cert %APPDATA%\\ASP.NET\\https\\%npm_package_name%.pem --ssl-key %APPDATA%\\ASP.NET\\https\\%npm_package_name%.key",
-    "start:default": "ng serve --port 44419 --ssl --ssl-cert $HOME/.aspnet/https/${npm_package_name}.pem --ssl-key $HOME/.aspnet/https/${npm_package_name}.key",
-    "build": "ng build",
-    "build:ssr": "ng run Turdle:server:dev",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "start:windows": "npm run ng -- serve --port 44419 --ssl --ssl-cert %APPDATA%\\ASP.NET\\https\\%npm_package_name%.pem --ssl-key %APPDATA%\\ASP.NET\\https\\%npm_package_name%.key",
+    "start:default": "npm run ng -- serve --port 44419 --ssl --ssl-cert $HOME/.aspnet/https/${npm_package_name}.pem --ssl-key $HOME/.aspnet/https/${npm_package_name}.key",
+    "build": "npm run ng -- build",
+    "build:ssr": "npm run ng -- run Turdle:server:dev",
+    "watch": "npm run ng -- build --watch --configuration development",
+    "test": "npm run ng -- test"
   },
   "private": true,
   "dependencies": {

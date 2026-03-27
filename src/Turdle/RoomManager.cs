@@ -82,7 +82,9 @@ public class RoomManager
             roomCode, BroadcastRooms, _botFactory, _avatarService, _roomAvatarService);
         _rooms.TryAdd(roomCode, room);
 
+        _logger.LogInformation("Initialising room");
         await room.Init();
+        _logger.LogInformation("Room initialised");
         await BroadcastRooms();
         return roomCode;
     }
