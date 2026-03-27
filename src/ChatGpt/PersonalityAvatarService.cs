@@ -32,9 +32,9 @@ namespace ChatGpt
             }
 
             var prompt = $"Generate a cartoon avatar of {personality}. Make them look pretentiously smart, like they're trying to look smarter than they are";
-            var imageUrl = await _imageClient.GenerateImage(prompt, ImageSize.DallE2Large);
+            var imageBytes = await _imageClient.GenerateImage(prompt, ImageSize.Gpt1MiniSquare, ImageQuality.Low);
 
-            if (string.IsNullOrEmpty(imageUrl))
+            if (imageBytes == null)
             {
                 _logger.LogWarning("Image generation returned no URL for {personality}", personality);
                 return null;
@@ -42,8 +42,7 @@ namespace ChatGpt
 
             try
             {
-                var bytes = await _httpClient.GetByteArrayAsync(imageUrl);
-                await File.WriteAllBytesAsync(filePath, bytes);
+                await File.WriteAllBytesAsync(filePath, imageBytes);
                 _logger.LogInformation("Cached avatar for {personality} at {path}", personality, filePath);
                 return relativePath;
             }

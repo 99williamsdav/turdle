@@ -1,3 +1,4 @@
+using System.Buffers.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -7,7 +8,7 @@ namespace ChatGpt
     public class ImageGenerationClient
     {
         private const string ImageGenerationApiUri = "https://api.openai.com/v1/images/generations";
-        private const string Model = "dall-e-2";
+        private const string Model = "gpt-image-1-mini"; //"dall-e-2";
 
         private readonly HttpClient _httpClient;
         private readonly ILogger<ImageGenerationClient> _logger;
@@ -29,9 +30,13 @@ namespace ChatGpt
             _logger = logger;
         }
 
-        public async Task<string?> GenerateImage(
+        /// <summary>
+        /// Generates an image for the given prompt.
+        /// </summary>
+        /// <returns>The png data</returns>
+        public async Task<byte[]?> GenerateImage(
             string prompt,
-            ImageSize size = ImageSize.DallE2Medium,
+            ImageSize size = ImageSize.Gpt1MiniSquare,
             ImageQuality quality = ImageQuality.Auto,
             string model = Model,
             bool transparentBackground = true)
@@ -40,16 +45,29 @@ namespace ChatGpt
                 model,
                 prompt,
                 1,
-                size.ToApiString()
-                //"standard" // quality.ToApiString(),
+                size.ToApiString(),
+                quality.ToApiString(),
                 //transparentBackground,
-                //"low"
+                "low"
                 );
             _logger.LogInformation("Calling OpenAI Image Generation API.");
 
             var response = await SendRequest<ImageGenerationRequest, ImageGenerationResponse>(ImageGenerationApiUri, request);
 
-            return response.data?.FirstOrDefault()?.url;
+            var imageData = response.data?.FirstOrDefault();
+            if (imageData?.B64Json != null)
+            {
+                byte[] data = Convert.FromBase64String(imageData.B64Json);
+                string decodedString = System.Text.Encoding.UTF8.GetString(data);
+                return data;
+            }
+            else if (imageData?.Url != null)
+            {
+                var data = await _httpClient.GetByteArrayAsync(imageData?.Url);
+                return data;
+            }
+            
+            throw new InvalidOperationException("No image data available");
         }
 
         private async Task<TResponse> SendRequest<TRequest, TResponse>(string url, TRequest request)
@@ -68,13 +86,21 @@ namespace ChatGpt
             string model,
             string prompt,
             int n,
-            string size
-            //string quality
+            string size,
+            string quality,
             //bool transparent,
-            //string moderation
+            string moderation
             );
         private record ImageGenerationResponse(ImageData[] data);
-        private record ImageData(string url, string? revised_prompt);
+        private class ImageData
+        {
+            [JsonProperty("url")]
+            public string? Url { get; init; }
+            [JsonProperty("revised_prompt")]
+            public string? RevisedPrompt { get; init; }
+            [JsonProperty("b64_json")]
+            public string? B64Json { get; init; }
+        }
     }
 
     public enum ImageSize
@@ -85,6 +111,7 @@ namespace ChatGpt
         DallE3Square,
         DallE3Landscape,
         DallE3Portrait,
+        Gpt1MiniSquare,
         Auto
     }
 
@@ -106,6 +133,7 @@ namespace ChatGpt
             ImageSize.DallE3Square => "1024x1024",
             ImageSize.DallE3Landscape => "1792x1024",
             ImageSize.DallE3Portrait => "1024x1792",
+            ImageSize.Gpt1MiniSquare => "1024x1024",
             _ => "auto"
         };
 
