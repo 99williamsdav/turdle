@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { EnvironmentService } from '../services/environment.service';
 import { GameService } from '../services/game.service';
@@ -14,7 +15,7 @@ export class NavMenuComponent implements OnInit {
   public environmentName: string | null = null;
   public environmentVersion: string | null = null;
 
-  constructor(private environmentService: EnvironmentService, private gameService: GameService) {
+  constructor(private environmentService: EnvironmentService, private gameService: GameService, private router: Router) {
   }
 
   ngOnInit(): void {
@@ -37,5 +38,10 @@ export class NavMenuComponent implements OnInit {
 
   get roomImagePath(): string | null {
     return this.gameService.roomImagePath;
+  }
+
+  get showRoomInfo(): boolean {
+    const url = this.router.url || '';
+    return url.startsWith('/play/') || url.startsWith('/tv');
   }
 }

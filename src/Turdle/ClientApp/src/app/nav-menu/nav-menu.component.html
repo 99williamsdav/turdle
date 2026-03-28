@@ -40,7 +40,7 @@
             </a>
           </li>
         </ul>
-        <div class="d-flex align-items-center room-header-info" *ngIf="roomCode">
+        <div class="d-flex align-items-center room-header-info" *ngIf="showRoomInfo && roomCode">
           <img *ngIf="roomImagePath" [src]="roomImagePath" class="me-1 room-image" />
           <span class="fw-bold">{{ roomCode }}</span>
         </div>
