@@ -62,6 +62,7 @@ builder.Services.AddSingleton<IWordAnalysisService, WordAnalysisService>();
 
 // config
 builder.Services.Configure<ChatGptSettings>(builder.Configuration.GetSection("ChatGpt"));
+builder.Services.Configure<RoomBufferSettings>(builder.Configuration.GetSection("RoomBuffer"));
 
 var app = builder.Build();
 

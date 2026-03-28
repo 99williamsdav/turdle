@@ -1,12 +1,13 @@
-﻿using System.Collections.Concurrent;
-using Microsoft.AspNetCore.SignalR;
-using System.Reflection;
+using System.Collections.Concurrent;
 using System.IO;
+using System.Reflection;
+using ChatGpt;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Options;
 using Turdle.Bots;
 using Turdle.Hubs;
 using Turdle.Models;
 using Turdle.ViewModel;
-using ChatGpt;
 
 namespace Turdle;
 
@@ -17,7 +18,7 @@ public class RoomManager
 
     private readonly string[] _adjectives;
     private readonly string[] _animals;
-    
+
     private readonly ILogger<RoomManager> _logger;
     private readonly IHubContext<GameHub> _gameHubContext;
     private readonly IHubContext<AdminHub> _adminHubContext;
@@ -28,17 +29,31 @@ public class RoomManager
     private readonly BotFactory _botFactory;
     private readonly PersonalityAvatarService _avatarService;
     private readonly RoomAvatarService _roomAvatarService;
+    private readonly RoomBufferSettings _roomBufferSettings;
 
     private readonly Board _fakeReadyBoard;
-    
+
     private readonly ConcurrentDictionary<string, object> _homeConnections = new ConcurrentDictionary<string, object>();
     private readonly ConcurrentDictionary<string, Room> _roomConnectionCache = new ConcurrentDictionary<string, Room>();
-
     private readonly ConcurrentDictionary<string, Room> _rooms = new ConcurrentDictionary<string, Room>();
+    private readonly ConcurrentQueue<Room> _prewarmedRooms = new ConcurrentQueue<Room>();
 
-    public RoomManager(ILogger<RoomManager> logger, IHubContext<GameHub> gameHubContext, IHubContext<AdminHub> adminHubContext, IHubContext<HomeHub> homeHubContext,
-        WordService wordService, IPointService pointService, IWordAnalysisService wordAnalyst, BotFactory botFactory, PersonalityAvatarService avatarService,
-        RoomAvatarService roomAvatarService)
+    private readonly object _roomCodeReservationLock = new object();
+    private readonly HashSet<string> _prewarmedRoomCodes = new HashSet<string>();
+    private readonly SemaphoreSlim _warmupSemaphore = new SemaphoreSlim(1, 1);
+
+    public RoomManager(
+        ILogger<RoomManager> logger,
+        IHubContext<GameHub> gameHubContext,
+        IHubContext<AdminHub> adminHubContext,
+        IHubContext<HomeHub> homeHubContext,
+        WordService wordService,
+        IPointService pointService,
+        IWordAnalysisService wordAnalyst,
+        BotFactory botFactory,
+        PersonalityAvatarService avatarService,
+        RoomAvatarService roomAvatarService,
+        IOptions<RoomBufferSettings> roomBufferSettings)
     {
         _logger = logger;
         _gameHubContext = gameHubContext;
@@ -50,6 +65,7 @@ public class RoomManager
         _botFactory = botFactory;
         _avatarService = avatarService;
         _roomAvatarService = roomAvatarService;
+        _roomBufferSettings = roomBufferSettings.Value;
 
         var assembly = Assembly.GetExecutingAssembly();
         using (var stream = assembly.GetManifestResourceStream("Turdle.Resources.Adjectives.txt"))
@@ -57,6 +73,7 @@ public class RoomManager
         {
             _adjectives = reader.ReadToEnd().Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
         }
+
         using (var stream = assembly.GetManifestResourceStream("Turdle.Resources.Animals.txt"))
         using (var reader = new StreamReader(stream!))
         {
@@ -68,34 +85,57 @@ public class RoomManager
         _fakeReadyBoard.AddRow("GAMER", "START", null, null, 1, pointService);
         _fakeReadyBoard.AddRow("SEEMS", "START", null, null, 1, pointService);
         _fakeReadyBoard.AddRow("READY", "START", null, null, 1, pointService);
+
+        if (_roomBufferSettings.TargetSize > 0)
+        {
+            _ = Task.Run(FillPrewarmedBuffer);
+        }
     }
 
     public async Task<string> CreateRoom(string adminConnectionId)
     {
-        var roomCode = "";
-        while (roomCode == "" || _rooms.ContainsKey(roomCode))
+        if (TryTakePrewarmedRoom(out var prewarmedRoom))
         {
-            roomCode = GenerateRoomCode();
+            if (!_rooms.TryAdd(prewarmedRoom.RoomCode, prewarmedRoom))
+            {
+                throw new InvalidOperationException($"Prewarmed room code collision: {prewarmedRoom.RoomCode}");
+            }
+
+            _logger.LogInformation(
+                "Using prewarmed room {roomCode}. Remaining buffered rooms: {bufferCount}",
+                prewarmedRoom.RoomCode,
+                _prewarmedRooms.Count);
+
+            if (_roomBufferSettings.TargetSize > 0)
+            {
+                _ = Task.Run(FillPrewarmedBuffer);
+            }
+
+            await BroadcastRooms();
+            return prewarmedRoom.RoomCode;
         }
 
-        var room = new Room(_gameHubContext, _adminHubContext, _wordService, _pointService, _logger, _wordAnalyst,
-            roomCode, BroadcastRooms, _botFactory, _avatarService, _roomAvatarService);
+        var roomCode = ReserveNewRoomCode(reserveForBuffer: false);
+        var room = CreateRoomInstance(roomCode);
         _rooms.TryAdd(roomCode, room);
 
-        _logger.LogInformation("Initialising room");
+        _logger.LogInformation("Initialising room synchronously because prewarmed buffer is empty");
         await room.Init();
-        _logger.LogInformation("Room initialised");
+        _logger.LogInformation("Room initialised (synchronous fallback)");
+
         await BroadcastRooms();
         return roomCode;
     }
-    
+
     public Room GetRoom(string roomCode, string? connectionId = null)
     {
         if (_rooms.TryGetValue(roomCode, out var room))
         {
             if (connectionId != null)
+            {
                 _roomConnectionCache.TryAdd(connectionId, room);
-            
+            }
+
             return room;
         }
 
@@ -135,7 +175,7 @@ public class RoomManager
         {
             await room.PlayerDisconnected(connectionId);
         }
-            
+
         _roomConnectionCache.TryRemove(connectionId, out _);
     }
 
@@ -145,8 +185,97 @@ public class RoomManager
         {
             await room.PlayerReconnected(connectionId);
         }
-            
+
         _roomConnectionCache.TryRemove(connectionId, out _);
+    }
+
+    private async Task FillPrewarmedBuffer()
+    {
+        await _warmupSemaphore.WaitAsync();
+        try
+        {
+            while (_prewarmedRooms.Count < _roomBufferSettings.TargetSize)
+            {
+                var roomCode = ReserveNewRoomCode(reserveForBuffer: true);
+
+                try
+                {
+                    var room = CreateRoomInstance(roomCode);
+                    _logger.LogInformation("Prewarming room {roomCode}", roomCode);
+                    await room.Init();
+                    _prewarmedRooms.Enqueue(room);
+                    _logger.LogInformation(
+                        "Prewarmed room {roomCode}. Buffered rooms: {bufferCount}",
+                        roomCode,
+                        _prewarmedRooms.Count);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to prewarm room {roomCode}", roomCode);
+                    ReleasePrewarmedRoomCode(roomCode);
+                    await Task.Delay(TimeSpan.FromSeconds(_roomBufferSettings.RetryDelaySeconds));
+                }
+            }
+        }
+        finally
+        {
+            _warmupSemaphore.Release();
+        }
+    }
+
+    private Room CreateRoomInstance(string roomCode)
+    {
+        return new Room(
+            _gameHubContext,
+            _adminHubContext,
+            _wordService,
+            _pointService,
+            _logger,
+            _wordAnalyst,
+            roomCode,
+            BroadcastRooms,
+            _botFactory,
+            _avatarService,
+            _roomAvatarService);
+    }
+
+    private bool TryTakePrewarmedRoom(out Room room)
+    {
+        if (_prewarmedRooms.TryDequeue(out room!))
+        {
+            ReleasePrewarmedRoomCode(room.RoomCode);
+            return true;
+        }
+
+        room = null!;
+        return false;
+    }
+
+    private string ReserveNewRoomCode(bool reserveForBuffer)
+    {
+        lock (_roomCodeReservationLock)
+        {
+            var roomCode = "";
+            while (roomCode == "" || _rooms.ContainsKey(roomCode) || _prewarmedRoomCodes.Contains(roomCode))
+            {
+                roomCode = GenerateRoomCode();
+            }
+
+            if (reserveForBuffer)
+            {
+                _prewarmedRoomCodes.Add(roomCode);
+            }
+
+            return roomCode;
+        }
+    }
+
+    private void ReleasePrewarmedRoomCode(string roomCode)
+    {
+        lock (_roomCodeReservationLock)
+        {
+            _prewarmedRoomCodes.Remove(roomCode);
+        }
     }
 
     private string GenerateRoomCode()
@@ -159,6 +288,7 @@ public class RoomManager
             {
                 code += RoomCodeCharacters[_random.Next(RoomCodeCharacters.Length)];
             }
+
             return code;
         }
 

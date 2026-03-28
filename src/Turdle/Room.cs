@@ -54,6 +54,7 @@ public class Room
 
     private string? _adminConnectionId;
     private readonly string _roomCode;
+    public string RoomCode => _roomCode;
     public string? ImagePath { get; private set; }
 
     private readonly object _stateLock = new object();

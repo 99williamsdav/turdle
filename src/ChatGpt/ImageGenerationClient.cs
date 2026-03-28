@@ -58,7 +58,6 @@ namespace ChatGpt
             if (imageData?.B64Json != null)
             {
                 byte[] data = Convert.FromBase64String(imageData.B64Json);
-                string decodedString = System.Text.Encoding.UTF8.GetString(data);
                 return data;
             }
             else if (imageData?.Url != null)
