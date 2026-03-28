@@ -558,6 +558,16 @@ export class GameService {
     }
   }
 
+  public async kickPlayer(alias: string): Promise<void> {
+    if (this.hubConnection == null)
+      return;
+    try {
+      await this.hubConnection.invoke('KickPlayer', this.roomCode, alias);
+    } catch (e) {
+      console.log('Error kicking player: ' + e);
+    }
+  }
+
   public async updateMaxGuesses(maxGuesses: number): Promise<void> {
     if (this.hubConnection == null)
       return;

@@ -29,6 +29,11 @@
                     *ngIf="currentPlayer != null && player.alias == currentPlayer.alias && !currentPlayer.ready" (click)="toggleReady(!currentPlayer.ready)">
               Ready!
             </button>
+            <button class="btn btn-sm btn-outline-danger"
+                    *ngIf="isAdmin && player.alias != currentPlayer?.alias"
+                    (click)="kickPlayer(player.alias)">
+              Kick
+            </button>
           </td>
         </tr>
         <tr *ngIf="gameParams?.adminAlias != null && gameParams!.adminAlias == currentPlayer?.alias">
@@ -120,6 +125,11 @@
             <span class="badge alert-info">{{ player.board?.points }}pts</span>
           </h4>
         </div>
+        <button class="btn btn-sm btn-outline-danger"
+                *ngIf="isAdmin"
+                (click)="kickPlayer(player.alias)">
+          Kick
+        </button>
 
         <game-board [board]="player.board" [wordLength]="roundState.wordLength"
                 [currentExpectedGuessCount]="player.board?.currentExpectedGuessCount"
@@ -203,6 +213,11 @@
             <span class="badge alert-info">{{ player.board?.points }}pts</span>
           </h4>
         </div>
+        <button class="btn btn-sm btn-outline-danger"
+                *ngIf="isAdmin"
+                (click)="kickPlayer(player.alias)">
+          Kick
+        </button>
         <game-board [board]="player.board" [wordLength]="roundState.wordLength"
                 [currentExpectedGuessCount]="player.board?.currentExpectedGuessCount"
                 [nextGuessDeadline]="player.board?.nextGuessDeadline"
@@ -227,6 +242,11 @@
           <span class="badge alert-info">{{ player.board?.points }}pts</span>
         </h4>
       </div>
+      <button class="btn btn-sm btn-outline-danger"
+              *ngIf="isAdmin"
+              (click)="kickPlayer(player.alias)">
+        Kick
+      </button>
       <game-board [board]="player.board" [wordLength]="roundState.wordLength"
                 [currentExpectedGuessCount]="player.board?.currentExpectedGuessCount"
                 [nextGuessDeadline]="player.board?.nextGuessDeadline"
@@ -237,7 +257,7 @@
 
   <div class="col-md-2">
     <div *ngIf="gameParams?.adminAlias != null && gameParams!.adminAlias == currentPlayer?.alias">
-      <button class="btn btn-sm btn-warning unselectable">
+      <button class="btn btn-sm btn-warning unselectable" (click)="openGameParams()">
         Change Settings
       </button>
       <br />
@@ -250,6 +270,7 @@
             <tr>
               <th></th>
               <th></th>
+              <th *ngIf="isAdmin"></th>
               <th>Total</th>
               <th>Round {{ roundState.roundNumber }}</th>
             </tr>
@@ -261,6 +282,13 @@
               </span>
             </td>
             <th>{{ player.alias | botEmoji: player.isBot }}</th>
+            <th *ngIf="isAdmin">
+              <button class="btn btn-sm btn-outline-danger"
+                      *ngIf="player.alias != currentPlayer?.alias"
+                      (click)="kickPlayer(player.alias)">
+                Kick
+              </button>
+            </th>
             <th>{{ player.points }}</th>
             <th>{{ player.board?.points | showPlus }}</th>
           </tr>

@@ -379,9 +379,18 @@ public class Room
         _tvConnections.Remove(connectionId, out _);
     }
 
-    // TODO check from admin connection
-    public async Task KickPlayer(string alias)
+    public Task KickPlayer(string alias)
     {
+        return KickPlayer(alias, null);
+    }
+
+    public async Task KickPlayer(string alias, string? requestingConnectionId)
+    {
+        if (requestingConnectionId != null &&
+            requestingConnectionId != _adminConnectionId &&
+            !_adminConnections.ContainsKey(requestingConnectionId))
+            throw new InvalidOperationException("Connection does not have permission to kick players.");
+
         MaskedRoundState maskedRoundState;
         Player player;
         bool paramsChanged = false;

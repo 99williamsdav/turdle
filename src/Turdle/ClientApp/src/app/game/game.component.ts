@@ -162,6 +162,9 @@ export class GameComponent {
     await this.gameService.addBot(personality);
     this.botPersonality = '';
   }
+  public async kickPlayer(alias: string): Promise<void> {
+    await this.gameService.kickPlayer(alias);
+  }
   public openGameParams(): void {
     const modalRef = this.modalService.open(GameParamsComponent);
     modalRef.componentInstance.gameParams = this.gameParams;
@@ -187,6 +190,9 @@ export class GameComponent {
   }
   get gameParams(): GameParameters | null {
     return this.gameService.gameParams;
+  }
+  get isAdmin(): boolean {
+    return this.gameParams?.adminAlias != null && this.gameParams.adminAlias == this.currentPlayer?.alias;
   }
   get pointSchedule(): PointSchedule | null {
     return this.gameService.pointSchedule;

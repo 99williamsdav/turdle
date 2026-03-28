@@ -200,6 +200,15 @@ public class GameHub : Hub
         }
     }
 
+    public async Task KickPlayer(string roomCode, string alias)
+    {
+        using (LogContext.Create(_logger, Context.ConnectionId, "KickPlayer"))
+        {
+            await _roomManager.GetRoom(roomCode)
+                .KickPlayer(alias, Context.ConnectionId);
+        }
+    }
+
     public async Task UpdateMaxGuesses(string roomCode, int maxGuesses)
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "UpdateMaxGuesses"))

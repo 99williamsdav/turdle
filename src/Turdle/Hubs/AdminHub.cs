@@ -21,7 +21,7 @@ public class AdminHub : Hub
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "KickPlayer"))
         {
-            await _roomManager.GetRoom(roomCode).KickPlayer(alias);
+            await _roomManager.GetRoom(roomCode).KickPlayer(alias, Context.ConnectionId);
         }
     }
 
