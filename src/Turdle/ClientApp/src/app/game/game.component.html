@@ -114,7 +114,7 @@
 
     <div class="row">
       <div class="col-md-6" *ngFor="let player of leftPlayers; trackBy: trackByUtils.trackByPlayer">
-        <div class="d-flex justify-content-between">
+        <div class="d-flex justify-content-between" (mouseenter)="hoveredAlias = player.alias" (mouseleave)="hoveredAlias = null">
           <h4>
             <span class="badge alert-primary">
               {{ player.board?.isJointRank ? '=' : '' }}{{ player.board?.rank }}<sup>{{ player.board?.rank | ordinal }}</sup>
@@ -122,14 +122,10 @@
           </h4>
           <h4>{{ player.alias | botEmoji: player.isBot }}{{ player.isConnected ? '' : '🔌' }}</h4>
           <h4>
-            <span class="badge alert-info">{{ player.board?.points }}pts</span>
+            <span class="badge alert-info" *ngIf="hoveredAlias !== player.alias">{{ player.board?.points }}pts</span>
+            <button class="btn btn-sm btn-outline-danger" *ngIf="isAdmin && hoveredAlias === player.alias" (click)="kickPlayer(player.alias)">Kick</button>
           </h4>
         </div>
-        <button class="btn btn-sm btn-outline-danger"
-                *ngIf="isAdmin"
-                (click)="kickPlayer(player.alias)">
-          Kick
-        </button>
 
         <game-board [board]="player.board" [wordLength]="roundState.wordLength"
                 [currentExpectedGuessCount]="player.board?.currentExpectedGuessCount"
@@ -202,7 +198,7 @@
     <div class="row">
 
       <div *ngFor="let player of rightPlayers; trackBy: trackByUtils.trackByPlayer" class="col-md-12">
-        <div class="d-flex justify-content-between">
+        <div class="d-flex justify-content-between" (mouseenter)="hoveredAlias = player.alias" (mouseleave)="hoveredAlias = null">
           <h4>
             <span class="badge alert-primary">
               {{ player.board?.isJointRank ? '=' : '' }}{{ player.board?.rank }}<sup>{{ player.board?.rank | ordinal:false }}</sup>
@@ -210,14 +206,10 @@
           </h4>
           <h4>{{ player.alias | botEmoji: player.isBot }}{{ player.isConnected ? '' : '🔌' }}</h4>
           <h4>
-            <span class="badge alert-info">{{ player.board?.points }}pts</span>
+            <span class="badge alert-info" *ngIf="hoveredAlias !== player.alias">{{ player.board?.points }}pts</span>
+            <button class="btn btn-sm btn-outline-danger" *ngIf="isAdmin && hoveredAlias === player.alias" (click)="kickPlayer(player.alias)">Kick</button>
           </h4>
         </div>
-        <button class="btn btn-sm btn-outline-danger"
-                *ngIf="isAdmin"
-                (click)="kickPlayer(player.alias)">
-          Kick
-        </button>
         <game-board [board]="player.board" [wordLength]="roundState.wordLength"
                 [currentExpectedGuessCount]="player.board?.currentExpectedGuessCount"
                 [nextGuessDeadline]="player.board?.nextGuessDeadline"
@@ -231,22 +223,18 @@
   <div *ngIf="isSmallScreen">
     <hr />
     <div *ngFor="let player of roundState.players | notAlias:currentPlayer?.alias | orderBy:'registeredAt'; trackBy: trackByUtils.trackByPlayer" class="col-12">
-      <div class="d-flex justify-content-between">
+      <div class="d-flex justify-content-between" (mouseenter)="hoveredAlias = player.alias" (mouseleave)="hoveredAlias = null">
         <h4>
-            <span class="badge alert-primary">
-              {{ player.board?.isJointRank ? '=' : '' }}{{ player.board?.rank }}<sup>{{ player.board?.rank | ordinal:false }}</sup>
-            </span>
+          <span class="badge alert-primary">
+            {{ player.isJointRank ? '=' : '' }}{{ player.rank }}<sup>{{ player.rank | ordinal:false }}</sup>
+          </span>
         </h4>
         <h4>{{ player.alias | botEmoji: player.isBot }}{{ player.isConnected ? '' : '🔌' }}</h4>
         <h4>
-          <span class="badge alert-info">{{ player.board?.points }}pts</span>
+          <span class="badge alert-info" *ngIf="hoveredAlias !== player.alias">{{ player.board?.points }}pts</span>
+          <button class="btn btn-sm btn-outline-danger" *ngIf="isAdmin && hoveredAlias === player.alias" (click)="kickPlayer(player.alias)">Kick</button>
         </h4>
       </div>
-      <button class="btn btn-sm btn-outline-danger"
-              *ngIf="isAdmin"
-              (click)="kickPlayer(player.alias)">
-        Kick
-      </button>
       <game-board [board]="player.board" [wordLength]="roundState.wordLength"
                 [currentExpectedGuessCount]="player.board?.currentExpectedGuessCount"
                 [nextGuessDeadline]="player.board?.nextGuessDeadline"
@@ -275,7 +263,7 @@
               <th>Round {{ roundState.roundNumber }}</th>
             </tr>
           </thead>
-          <tr *ngFor="let player of roundState.players | orderBy:'rank'; trackBy: trackByUtils.trackByPlayer">
+          <tr *ngFor="let player of roundState.players | orderBy:'rank'; trackBy: trackByUtils.trackByPlayer" (mouseenter)="hoveredAlias = player.alias" (mouseleave)="hoveredAlias = null">
             <td>
               <span class="badge alert-primary">
                 {{ player.isJointRank ? '=' : '' }}{{ player.rank }}<sup>{{ player.rank | ordinal:false }}</sup>
@@ -283,11 +271,8 @@
             </td>
             <th>{{ player.alias | botEmoji: player.isBot }}</th>
             <th *ngIf="isAdmin">
-              <button class="btn btn-sm btn-outline-danger"
-                      *ngIf="player.alias != currentPlayer?.alias"
-                      (click)="kickPlayer(player.alias)">
-                Kick
-              </button>
+              <span *ngIf="hoveredAlias !== player.alias">{{ player.points }}</span>
+              <button class="btn btn-sm btn-outline-danger" *ngIf="hoveredAlias === player.alias && player.alias != currentPlayer?.alias" (click)="kickPlayer(player.alias)">Kick</button>
             </th>
             <th>{{ player.points }}</th>
             <th>{{ player.board?.points | showPlus }}</th>

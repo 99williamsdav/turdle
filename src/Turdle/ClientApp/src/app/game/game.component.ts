@@ -20,6 +20,7 @@ export class GameComponent {
   public innerWidth: number | null = null;
   public isSmallScreen: boolean = false;
   public botPersonality: string = '';
+  public hoveredAlias: string | null = null;
   aliasForm = this.fb.group({
     Alias: ['', Validators.required]
   });
