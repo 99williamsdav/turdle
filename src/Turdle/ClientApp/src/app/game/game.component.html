@@ -263,7 +263,7 @@
               <th>Round {{ roundState.roundNumber }}</th>
             </tr>
           </thead>
-          <tr *ngFor="let player of roundState.players | orderBy:'rank'; trackBy: trackByUtils.trackByPlayer" (mouseenter)="hoveredAlias = player.alias" (mouseleave)="hoveredAlias = null">
+          <tr *ngFor="let player of roundState.players | orderBy:'rank'; trackBy: trackByUtils.trackByPlayer">
             <td>
               <span class="badge alert-primary">
                 {{ player.isJointRank ? '=' : '' }}{{ player.rank }}<sup>{{ player.rank | ordinal:false }}</sup>
