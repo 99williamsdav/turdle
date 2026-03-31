@@ -21,7 +21,8 @@ public class AdminHub : Hub
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "KickPlayer"))
         {
-            await _roomManager.GetRoom(roomCode).KickPlayer(alias, Context.ConnectionId);
+            var room = await _roomManager.GetRoom(roomCode);
+            await room.KickPlayer(alias, Context.ConnectionId);
         }
     }
 
@@ -29,7 +30,8 @@ public class AdminHub : Hub
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "DisconnectPlayer"))
         {
-            await _roomManager.GetRoom(roomCode).DisconnectPlayer(alias);
+            var room = await _roomManager.GetRoom(roomCode);
+            await room.DisconnectPlayer(alias);
         }
     }
 
@@ -38,7 +40,8 @@ public class AdminHub : Hub
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "HardReset"))
         {
-            await _roomManager.GetRoom(roomCode).HardResetAll();
+            var room = await _roomManager.GetRoom(roomCode);
+            await room.HardResetAll();
         }
     }
 

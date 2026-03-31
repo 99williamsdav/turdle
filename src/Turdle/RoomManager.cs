@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Turdle.Bots;
 using Turdle.Hubs;
 using Turdle.Models;
+using Turdle.Persistence;
 using Turdle.ViewModel;
 
 namespace Turdle;
@@ -30,6 +31,7 @@ public class RoomManager
     private readonly PersonalityAvatarService _avatarService;
     private readonly RoomAvatarService _roomAvatarService;
     private readonly RoomBufferSettings _roomBufferSettings;
+    private readonly IRoomStateRepository _roomStateRepository;
 
     private readonly Board _fakeReadyBoard;
 
@@ -53,7 +55,8 @@ public class RoomManager
         BotFactory botFactory,
         PersonalityAvatarService avatarService,
         RoomAvatarService roomAvatarService,
-        IOptions<RoomBufferSettings> roomBufferSettings)
+        IOptions<RoomBufferSettings> roomBufferSettings,
+        IRoomStateRepository roomStateRepository)
     {
         _logger = logger;
         _gameHubContext = gameHubContext;
@@ -66,6 +69,7 @@ public class RoomManager
         _avatarService = avatarService;
         _roomAvatarService = roomAvatarService;
         _roomBufferSettings = roomBufferSettings.Value;
+        _roomStateRepository = roomStateRepository;
 
         var assembly = Assembly.GetExecutingAssembly();
         using (var stream = assembly.GetManifestResourceStream("Turdle.Resources.Adjectives.txt"))
@@ -111,6 +115,7 @@ public class RoomManager
                 _ = Task.Run(FillPrewarmedBuffer);
             }
 
+            await PersistRoom(prewarmedRoom);
             await BroadcastRooms();
             return prewarmedRoom.RoomCode;
         }
@@ -123,13 +128,21 @@ public class RoomManager
         await room.Init();
         _logger.LogInformation("Room initialised (synchronous fallback)");
 
+        await PersistRoom(room);
         await BroadcastRooms();
         return roomCode;
     }
 
-    public Room GetRoom(string roomCode, string? connectionId = null)
+    public async Task<Room> GetRoom(string roomCode, string? connectionId = null)
     {
-        if (_rooms.TryGetValue(roomCode, out var room))
+        if (!_rooms.TryGetValue(roomCode, out var room))
+        {
+            room = await TryLoadPersistedRoom(roomCode);
+            if (room != null)
+                _rooms.TryAdd(roomCode, room);
+        }
+
+        if (room != null)
         {
             if (connectionId != null)
             {
@@ -236,7 +249,36 @@ public class RoomManager
             BroadcastRooms,
             _botFactory,
             _avatarService,
-            _roomAvatarService);
+            _roomAvatarService,
+            snapshot => PersistRoom(snapshot));
+    }
+
+    private async Task<Room?> TryLoadPersistedRoom(string roomCode)
+    {
+        var snapshot = await _roomStateRepository.Get(roomCode);
+        if (snapshot == null)
+        {
+            return null;
+        }
+
+        var loadedRoom = CreateRoomInstance(roomCode);
+        loadedRoom.RestoreFromSnapshot(snapshot);
+
+        if (_rooms.TryAdd(roomCode, loadedRoom))
+        {
+            _logger.LogInformation("Restored room {roomCode} from SQLite", roomCode);
+            return loadedRoom;
+        }
+
+        _rooms.TryGetValue(roomCode, out var existing);
+        return existing;
+    }
+
+    private Task PersistRoom(Room room) => PersistRoom(room.ToSnapshot());
+
+    private Task PersistRoom(RoomStateSnapshot snapshot)
+    {
+        return _roomStateRepository.Upsert(snapshot);
     }
 
     private bool TryTakePrewarmedRoom(out Room room)

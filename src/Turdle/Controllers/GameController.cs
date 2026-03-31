@@ -29,41 +29,45 @@ public class GameController : ControllerBase
 
     [HttpGet]
     [Route("GetRoom")]
-    public Task<RoomSummary> GetRoom(string roomCode)
+    public async Task<RoomSummary> GetRoom(string roomCode)
     {
         using (LogContext.Create(_logger, "API", "GetRoom"))
         {
-            return Task.FromResult(_roomManager.GetRoom(roomCode).ToSummary());
+            var room = await _roomManager.GetRoom(roomCode);
+            return room.ToSummary();
         }
     }
 
     [HttpGet]
     [Route("GetGameState")]
-    public Task<IRoundState<IPlayer<IBoard<IRow<ITile>, ITile>, IRow<ITile>, ITile>, IBoard<IRow<ITile>, ITile>, IRow<ITile>, ITile>> GetGameState(string roomCode)
+    public async Task<IRoundState<IPlayer<IBoard<IRow<ITile>, ITile>, IRow<ITile>, ITile>, IBoard<IRow<ITile>, ITile>, IRow<ITile>, ITile>> GetGameState(string roomCode)
     {
         using (LogContext.Create(_logger, "API", "GetGameState"))
         {
-            return _roomManager.GetRoom(roomCode).GetGameState();
+            var room = await _roomManager.GetRoom(roomCode);
+            return await room.GetGameState();
         }
     }
 
     [HttpGet]
     [Route("GetGameParameters")]
-    public Task<GameParameters> GetGameParameters(string roomCode)
+    public async Task<GameParameters> GetGameParameters(string roomCode)
     {
         using (LogContext.Create(_logger, "API", "GetGameParameters"))
         {
-            return _roomManager.GetRoom(roomCode).GetGameParameters();
+            var room = await _roomManager.GetRoom(roomCode);
+            return await room.GetGameParameters();
         }
     }
 
     [HttpGet]
     [Route("GetChatMessages")]
-    public ChatMessage[] GetChatMessages(string roomCode)
+    public async Task<ChatMessage[]> GetChatMessages(string roomCode)
     {
         using (LogContext.Create(_logger, "API", "GetChatMessages"))
         {
-            return _roomManager.GetRoom(roomCode).GetChatMessages();
+            var room = await _roomManager.GetRoom(roomCode);
+            return room.GetChatMessages();
         }
     }
 

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.SignalR;
 using Turdle.Bots;
 using Turdle.Hubs;
 using Turdle.Models;
+using Turdle.Persistence;
 using Turdle.Utils;
 using Turdle.ViewModel;
 using ChatGpt;
@@ -36,7 +38,7 @@ public class Room
     private readonly PersonalityAvatarService _avatarService;
     private readonly RoomAvatarService _roomAvatarService;
 
-    private readonly DateTime _createdOn = DateTime.Now;
+    private DateTime _createdOn = DateTime.Now;
 
     private InternalRoundState _internalRoundState;
     private GameParameters _gameParameters;
@@ -64,6 +66,7 @@ public class Room
     private List<(Timer Timer, Player[] Players)> _guessTimers = new();
 
     private readonly Func<Task> _roomSummaryUpdatedCallback;
+    private readonly Func<RoomStateSnapshot, Task> _persistRoomState;
 
     public Room(
         IHubContext<GameHub> hubContext, IHubContext<AdminHub> adminHubContext,
@@ -75,7 +78,8 @@ public class Room
         Func<Task> roomSummaryUpdatedCallback,
         BotFactory botFactory,
         PersonalityAvatarService avatarService,
-        RoomAvatarService roomAvatarService)
+        RoomAvatarService roomAvatarService,
+        Func<RoomStateSnapshot, Task>? persistRoomState = null)
     {
         _hubContext = hubContext;
         _adminHubContext = adminHubContext;
@@ -91,6 +95,30 @@ public class Room
         _botFactory = botFactory;
         _avatarService = avatarService;
         _roomAvatarService = roomAvatarService;
+        _persistRoomState = persistRoomState ?? (_ => Task.CompletedTask);
+    }
+
+    public void RestoreFromSnapshot(RoomStateSnapshot snapshot)
+    {
+        lock (_stateLock)
+        {
+            _createdOn = snapshot.CreatedOn;
+            ImagePath = snapshot.ImagePath;
+            _adminConnectionId = snapshot.AdminConnectionId;
+            _gameParameters = snapshot.GameParameters;
+            _usedBotPersonalities = snapshot.UsedBotPersonalities;
+            _chatMessages = snapshot.ChatMessages;
+
+            _previousRoundStates = snapshot.PreviousRoundStates
+                .Select(x => new InternalRoundState(x, _pointService, _gameParameters, _wordService, ResolveBotForSnapshot))
+                .ToList();
+
+            _playersByConnectionId.Clear();
+            _adminConnections.Clear();
+            _tvConnections.Clear();
+
+            RecreateTimersLocked();
+        }
     }
 
     public async Task Init()
@@ -102,6 +130,7 @@ public class Room
             {
                 ImagePath = path;
                 await _roomSummaryUpdatedCallback();
+                await PersistState();
             }
         }
         catch (Exception e)
@@ -134,6 +163,7 @@ public class Room
         _internalRoundState = new InternalRoundState(_wordService.GetRandomWord(_gameParameters.AnswerList), _pointService, _gameParameters, _wordService);
         await BroadcastRoundState(_internalRoundState, _internalRoundState.Mask());
         await _roomSummaryUpdatedCallback();
+        await PersistState();
     }
 
     public async Task<IRoundState<IPlayer<IBoard<IRow<ITile>, ITile>, IRow<ITile>, ITile>, IBoard<IRow<ITile>, ITile>, IRow<ITile>, ITile>> GetGameState()
@@ -202,6 +232,7 @@ public class Room
         if (paramsChanged)
             await BroadcastParameters();
         await _roomSummaryUpdatedCallback();
+        await PersistState();
 
         Task.Run(async () =>
         {
@@ -217,6 +248,7 @@ public class Room
                     }
                     await BroadcastRoundState(_internalRoundState, maskedRoundState);
                     await _roomSummaryUpdatedCallback();
+                    await PersistState();
                 }
             }
             catch (Exception e)
@@ -273,6 +305,7 @@ public class Room
 
         await BroadcastRoundState(_internalRoundState, maskedRoundState);
         await _roomSummaryUpdatedCallback();
+        await PersistState();
 
         Task.Run(async () =>
         {
@@ -291,6 +324,7 @@ public class Room
                     }
                     await BroadcastRoundState(_internalRoundState, maskedRoundState);
                     await _roomSummaryUpdatedCallback();
+                    await PersistState();
                 }
                 
                 await NotifyTyping(player.ConnectionId);
@@ -347,6 +381,7 @@ public class Room
         {
             await BroadcastRoundState(_internalRoundState, gameState);
             await _roomSummaryUpdatedCallback();
+            await PersistState();
         }
     }
 
@@ -365,7 +400,10 @@ public class Room
         }
         
         if (reconnected)
+        {
             await BroadcastRoundState(_internalRoundState, gameState);
+            await PersistState();
+        }
     }
 
     public async Task LogOut(string connectionId)
@@ -423,6 +461,7 @@ public class Room
         if (paramsChanged)
             await BroadcastParameters();
         await _roomSummaryUpdatedCallback();
+        await PersistState();
     }
 
     public async Task DisconnectPlayer(string alias)
@@ -446,6 +485,7 @@ public class Room
         
         await BroadcastRoundState(_internalRoundState, maskedRoundState);
         await _roomSummaryUpdatedCallback();
+        await PersistState();
     }
 
     public async Task ToggleReady(bool ready, string connectionId)
@@ -468,6 +508,7 @@ public class Room
         
         await BroadcastRoundState(_internalRoundState, maskedRoundState);
         await _roomSummaryUpdatedCallback();
+        await PersistState();
     }
 
     // TODO check from admin connection?
@@ -512,6 +553,7 @@ public class Room
             .Concat(_adminConnections.Keys);
         await _hubContext.Clients.Clients(allConnections).SendAsync("StartNewGame", new Board());
         await _roomSummaryUpdatedCallback();
+        await PersistState();
     }
 
     private async Task StartRoundInternal()
@@ -524,19 +566,7 @@ public class Room
                 _internalRoundState.Status = RoundStatus.Playing;
                 maskedRoundState = _internalRoundState.Mask();
                 _startTimer?.Stop();
-
-                // work out player time limit handicaps
-                var playerTimeLimits = _internalRoundState.Players.GroupBy(x => x.Board?.NextGuessDeadline);
-                _guessTimers = playerTimeLimits.Where(grp => grp.Key != null).Select(grp =>
-                {
-                    var players = grp.ToArray();
-                    var timeUntilDeadline = grp.Key.Value - DateTime.Now;
-                    var timer = new Timer(timeUntilDeadline.TotalMilliseconds);
-                    timer.Elapsed += 
-                        async (sender, e) => await GuessDeadlineReached(timer, players);
-                    timer.Start();
-                    return (timer, players);
-                }).ToList();
+                SetupGuessTimersLocked();
             }
 
             InitBotGuesses();
@@ -550,6 +580,7 @@ public class Room
 
             await BroadcastRoundState(_internalRoundState, maskedRoundState);
             await _roomSummaryUpdatedCallback();
+            await PersistState();
         }
     }
 
@@ -780,6 +811,7 @@ public class Room
         callback(_gameParameters);
 
         await BroadcastParameters();
+        await PersistState();
     }
 
     public async Task SendChat(string connectionId, string message)
@@ -800,6 +832,7 @@ public class Room
             .Concat(_tvConnections.Keys)
             .Concat(_adminConnections.Keys);
         await _hubContext.Clients.Clients(allConnections).SendAsync("ChatMessageReceived", chatMessage);
+        await PersistState();
 
         // If a player sent it, ask a bot for a reply
         if (!player.IsBot && _internalRoundState.Players.Any(x => x.IsBot))
@@ -866,6 +899,114 @@ public class Room
         var baseDelay = Random.Shared.Next(1000, 3000);
         var lengthDelay = message.Length * 30; // additional delay for longer messages
         return TimeSpan.FromMilliseconds(baseDelay + lengthDelay);
+    }
+
+    private IBot? ResolveBotForSnapshot(PlayerSnapshot snapshot)
+    {
+        if (!snapshot.IsBot)
+        {
+            return null;
+        }
+
+        var personality = snapshot.BotPersonality;
+        if (string.IsNullOrWhiteSpace(personality))
+        {
+            personality = GetBotPersonalityFromAlias(snapshot.Alias);
+        }
+
+        if (string.IsNullOrWhiteSpace(personality))
+        {
+            return _botFactory.CreateBot(new BotParams(BotType.Dumb, ""));
+        }
+
+        try
+        {
+            return _botFactory.CreateBot(new BotParams(BotType.ChatGptPersonality, personality));
+        }
+        catch
+        {
+            return _botFactory.CreateBot(new BotParams(BotType.Dumb, ""));
+        }
+    }
+
+    private static string? GetBotPersonalityFromAlias(string alias)
+    {
+        var cleaned = Regex.Replace(alias, @"\s+\d+$", string.Empty).Trim();
+        return string.IsNullOrWhiteSpace(cleaned) ? null : cleaned;
+    }
+
+    public RoomStateSnapshot ToSnapshot()
+    {
+        lock (_stateLock)
+        {
+            return new RoomStateSnapshot
+            {
+                RoomCode = _roomCode,
+                CreatedOn = _createdOn,
+                ImagePath = ImagePath,
+                AdminConnectionId = _adminConnectionId,
+                AdminConnections = _adminConnections.Keys.ToList(),
+                TvConnections = _tvConnections.Keys.ToList(),
+                UsedBotPersonalities = _usedBotPersonalities.ToList(),
+                ChatMessages = _chatMessages.ToList(),
+                GameParameters = _gameParameters.Clone(),
+                PreviousRoundStates = _previousRoundStates
+                    .Select(x => x.ToSnapshot(player => player.IsBot ? GetBotPersonalityFromAlias(player.Alias) : null))
+                    .ToList()
+            };
+        }
+    }
+
+    private async Task PersistState()
+    {
+        try
+        {
+            await _persistRoomState(ToSnapshot());
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error persisting room state {roomCode}", _roomCode);
+        }
+    }
+
+    private void RecreateTimersLocked()
+    {
+        _startTimer?.Stop();
+        foreach (var (timer, _) in _guessTimers)
+        {
+            timer.Stop();
+        }
+        _guessTimers.Clear();
+
+        if (_internalRoundState.Status == RoundStatus.Starting)
+        {
+            var dueAt = _internalRoundState.StartTime ?? DateTime.Now;
+            var ms = Math.Max((dueAt - DateTime.Now).TotalMilliseconds, 100);
+            _startTimer = new Timer(ms);
+            _startTimer.Elapsed += async (_, _) => await StartRoundInternal();
+            _startTimer.Start();
+            return;
+        }
+
+        if (_internalRoundState.Status == RoundStatus.Playing)
+        {
+            SetupGuessTimersLocked();
+            InitBotGuesses();
+        }
+    }
+
+    private void SetupGuessTimersLocked()
+    {
+        var playerTimeLimits = _internalRoundState.Players.GroupBy(x => x.Board?.NextGuessDeadline);
+        _guessTimers = playerTimeLimits.Where(grp => grp.Key != null).Select(grp =>
+        {
+            var players = grp.ToArray();
+            var timeUntilDeadline = grp.Key!.Value - DateTime.Now;
+            var timer = new Timer(Math.Max(timeUntilDeadline.TotalMilliseconds, 100));
+            timer.Elapsed += async (sender, e) => await GuessDeadlineReached(timer, players);
+            timer.Start();
+            return (timer, players);
+        }).ToList();
     }
 
 

@@ -44,6 +44,11 @@ public class Board : IBoard<Board.Row, Board.Tile>
 
     private int _maxGuesses;
 
+    private Board(DateTime startTime)
+    {
+        StartTime = startTime;
+    }
+
     public MaskedBoard Mask() => new MaskedBoard
     {
         Rows = _rows.Select(x => x.Mask()).ToArray(),
@@ -238,7 +243,7 @@ public class Board : IBoard<Board.Row, Board.Tile>
         if (Points != prevPoints)
             PointsUpdated?.Invoke(this, EventArgs.Empty);
     }
-    
+
     public class Row : IRow<Tile>
     {
         public Tile[] Tiles { get; private set; }
@@ -324,6 +329,7 @@ public class Board : IBoard<Board.Row, Board.Tile>
         {
             return new string(Tiles.Select(x => x.Letter).ToArray());
         }
+
     }
 
     // Instance: what instance of this letter in the word was it

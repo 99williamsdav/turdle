@@ -38,12 +38,13 @@ public class GameHub : Hub
         }
     }
 
-    public Task LogOut(string roomCode)
+    public async Task LogOut(string roomCode)
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "LogOut"))
         {
             _logger.LogInformation($"LogOut({roomCode})");
-            return _roomManager.GetRoom(roomCode).LogOut(Context.ConnectionId);
+            var room = await _roomManager.GetRoom(roomCode);
+            await room.LogOut(Context.ConnectionId);
         }
     }
 
@@ -55,7 +56,7 @@ public class GameHub : Hub
             _logger.LogInformation($"RegisterAlias({roomCode}, {alias}, {feature?.RemoteIpAddress})");
             try
             {
-                var room = _roomManager.GetRoom(roomCode, Context.ConnectionId);
+                var room = await _roomManager.GetRoom(roomCode, Context.ConnectionId);
                 var player = await room.RegisterAlias(alias, Context.ConnectionId, feature.RemoteIpAddress.ToString());
                 return new Result<Player>(player);
             }
@@ -67,52 +68,55 @@ public class GameHub : Hub
         }
     }
 
-    public Task RegisterAdminConnection(string roomCode)
+    public async Task RegisterAdminConnection(string roomCode)
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "RegisterAdminConnection"))
         {
             _logger.LogInformation($"RegisterAdminConnection({roomCode})");
-            _roomManager.GetRoom(roomCode).RegisterAdminConnection(Context.ConnectionId);
-            return Task.CompletedTask;
+            var room = await _roomManager.GetRoom(roomCode);
+            room.RegisterAdminConnection(Context.ConnectionId);
         }
     }
 
-    public Task RegisterTvConnection(string roomCode)
+    public async Task RegisterTvConnection(string roomCode)
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "RegisterTvConnection"))
         {
             _logger.LogInformation($"RegisterTvConnection({roomCode})");
-            _roomManager.GetRoom(roomCode).RegisterTvConnection(Context.ConnectionId);
-            return Task.CompletedTask;
+            var room = await _roomManager.GetRoom(roomCode);
+            room.RegisterTvConnection(Context.ConnectionId);
         }
     }
 
-    public Task ToggleReady(string roomCode, bool ready)
+    public async Task ToggleReady(string roomCode, bool ready)
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "ToggleReady"))
         {
             _logger.LogInformation($"ToggleReady({roomCode}, {ready})");
-            return _roomManager.GetRoom(roomCode).ToggleReady(ready, Context.ConnectionId);
+            var room = await _roomManager.GetRoom(roomCode);
+            await room.ToggleReady(ready, Context.ConnectionId);
         }
     }
 
-    public Task VoteToStart(string roomCode)
+    public async Task VoteToStart(string roomCode)
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "VoteToStart"))
         {
             _logger.LogInformation($"VoteToStart({roomCode})");
-            return _roomManager.GetRoom(roomCode).StartNewRound();
+            var room = await _roomManager.GetRoom(roomCode);
+            await room.StartNewRound();
         }
     }
 
-    public Task<Result<Board>> PlayGuess(string roomCode, string guess, int guessNumber)
+    public async Task<Result<Board>> PlayGuess(string roomCode, string guess, int guessNumber)
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "PlayGuess"))
         {
             _logger.LogInformation($"PlayGuess({roomCode}, {guess}, {guessNumber})");
             try
             {
-                return _roomManager.GetRoom(roomCode).PlayGuess(Context.ConnectionId, guess, guessNumber);
+                var room = await _roomManager.GetRoom(roomCode);
+                return await room.PlayGuess(Context.ConnectionId, guess, guessNumber);
             }
             catch (Exception e)
             {
@@ -121,23 +125,25 @@ public class GameHub : Hub
         }
     }
 
-    public Task<string?> SuggestGuess(string roomCode)
+    public async Task<string?> SuggestGuess(string roomCode)
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "SuggestGuess"))
         {
             _logger.LogInformation($"SuggestGuess({roomCode})");
-            return _roomManager.GetRoom(roomCode).SuggestGuess(Context.ConnectionId);
+            var room = await _roomManager.GetRoom(roomCode);
+            return await room.SuggestGuess(Context.ConnectionId);
         }
     }
 
-    public Task<Result<Board>> GiveUp(string roomCode)
+    public async Task<Result<Board>> GiveUp(string roomCode)
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "GiveUp"))
         {
             _logger.LogInformation($"GiveUp({roomCode})");
             try
             {
-                return _roomManager.GetRoom(roomCode).GiveUp(Context.ConnectionId);
+                var room = await _roomManager.GetRoom(roomCode);
+                return await room.GiveUp(Context.ConnectionId);
             }
             catch (Exception e)
             {
@@ -146,30 +152,33 @@ public class GameHub : Hub
         }
     }
 
-    public Task<Result<Board>> RevealAbsentLetter(string roomCode)
+    public async Task<Result<Board>> RevealAbsentLetter(string roomCode)
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "RevealAbsentLetter"))
         {
             _logger.LogInformation($"RevealAbsentLetter({roomCode})");
-            return _roomManager.GetRoom(roomCode).RevealAbsentLetter(Context.ConnectionId);
+            var room = await _roomManager.GetRoom(roomCode);
+            return await room.RevealAbsentLetter(Context.ConnectionId);
         }
     }
 
-    public Task<Result<Board>> RevealPresentLetter(string roomCode)
+    public async Task<Result<Board>> RevealPresentLetter(string roomCode)
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "RevealPresentLetter"))
         {
             _logger.LogInformation($"RevealPresentLetter({roomCode})");
-            return _roomManager.GetRoom(roomCode).RevealPresentLetter(Context.ConnectionId);
+            var room = await _roomManager.GetRoom(roomCode);
+            return await room.RevealPresentLetter(Context.ConnectionId);
         }
     }
 
-    public Task<Board> GetPlayerBoard(string roomCode)
+    public async Task<Board> GetPlayerBoard(string roomCode)
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "GetPlayerBoard"))
         {
             _logger.LogInformation($"GetPlayerBoard({roomCode})");
-            return _roomManager.GetRoom(roomCode).GetPlayerBoard(Context.ConnectionId);
+            var room = await _roomManager.GetRoom(roomCode);
+            return await room.GetPlayerBoard(Context.ConnectionId);
         }
     }
 
@@ -177,8 +186,8 @@ public class GameHub : Hub
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "UpdateGuessTimeLimit"))
         {
-            await _roomManager.GetRoom(roomCode)
-                .UpdateGameParameters(Context.ConnectionId, param => param.GuessTimeLimitSeconds = seconds);
+            var room = await _roomManager.GetRoom(roomCode);
+            await room.UpdateGameParameters(Context.ConnectionId, param => param.GuessTimeLimitSeconds = seconds);
         }
     }
 
@@ -186,8 +195,8 @@ public class GameHub : Hub
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "UpdateAnswerList"))
         {
-            await _roomManager.GetRoom(roomCode)
-                .UpdateGameParameters(Context.ConnectionId, param => param.AnswerList = listType);
+            var room = await _roomManager.GetRoom(roomCode);
+            await room.UpdateGameParameters(Context.ConnectionId, param => param.AnswerList = listType);
         }
     }
 
@@ -195,8 +204,8 @@ public class GameHub : Hub
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "AddBot"))
         {
-            await _roomManager.GetRoom(roomCode)
-                .AddBot(Context.ConnectionId, personality);
+            var room = await _roomManager.GetRoom(roomCode);
+            await room.AddBot(Context.ConnectionId, personality);
         }
     }
 
@@ -204,8 +213,8 @@ public class GameHub : Hub
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "KickPlayer"))
         {
-            await _roomManager.GetRoom(roomCode)
-                .KickPlayer(alias, Context.ConnectionId);
+            var room = await _roomManager.GetRoom(roomCode);
+            await room.KickPlayer(alias, Context.ConnectionId);
         }
     }
 
@@ -213,8 +222,8 @@ public class GameHub : Hub
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "UpdateMaxGuesses"))
         {
-            await _roomManager.GetRoom(roomCode)
-                .UpdateGameParameters(Context.ConnectionId, param => param.MaxGuesses = maxGuesses);
+            var room = await _roomManager.GetRoom(roomCode);
+            await room.UpdateGameParameters(Context.ConnectionId, param => param.MaxGuesses = maxGuesses);
         }
     }
 
@@ -222,7 +231,7 @@ public class GameHub : Hub
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "SendChat"))
         {
-            var room = _roomManager.GetRoom(roomCode);
+            var room = await _roomManager.GetRoom(roomCode);
             await room.SendChat(Context.ConnectionId, message);
             await room.NotifyStoppedTyping(Context.ConnectionId);
         }
@@ -232,8 +241,8 @@ public class GameHub : Hub
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "Typing"))
         {
-            await _roomManager.GetRoom(roomCode)
-                .NotifyTyping(Context.ConnectionId);
+            var room = await _roomManager.GetRoom(roomCode);
+            await room.NotifyTyping(Context.ConnectionId);
         }
     }
 
@@ -241,8 +250,8 @@ public class GameHub : Hub
     {
         using (LogContext.Create(_logger, Context.ConnectionId, "StopTyping"))
         {
-            await _roomManager.GetRoom(roomCode)
-                .NotifyStoppedTyping(Context.ConnectionId);
+            var room = await _roomManager.GetRoom(roomCode);
+            await room.NotifyStoppedTyping(Context.ConnectionId);
         }
     }
 }

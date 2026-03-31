@@ -2,6 +2,7 @@
 using System.Numerics;
 using Turdle.Bots;
 using Turdle.Models.Exceptions;
+using Turdle.Persistence;
 using Turdle.Utils;
 
 namespace Turdle.Models;
@@ -66,6 +67,38 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
         RoundNumber = 1;
         MaxGuesses = gameParameters.MaxGuesses;
         _defaultTimeLimitSeconds = gameParameters.GuessTimeLimitSeconds;
+    }
+
+    public InternalRoundState(
+        InternalRoundStateSnapshot snapshot,
+        IPointService pointService,
+        GameParameters gameParameters,
+        WordService wordService,
+        Func<PlayerSnapshot, IBot?> botResolver)
+    {
+        CorrectAnswer = snapshot.CorrectAnswer;
+        _pointService = pointService;
+        _wordService = wordService;
+        RoundNumber = snapshot.RoundNumber;
+        Status = snapshot.Status;
+        StartTime = snapshot.StartTime;
+        EndTime = snapshot.EndTime;
+        MaxGuesses = snapshot.MaxGuesses;
+        _defaultTimeLimitSeconds = snapshot.DefaultTimeLimitSeconds;
+
+        _players = snapshot.Players
+            .Select(x => Player.Restore(x, botResolver(x)))
+            .ToList();
+        Players = _players.ToArray();
+
+        foreach (var player in Players)
+        {
+            if (player.Board != null)
+            {
+                BoardsByAlias[player.Alias] = player.Board;
+                player.Board.PointsUpdated += BoardPointsUpdated;
+            }
+        }
     }
 
     public InternalRoundState(string correctAnswer, IEnumerable<Player> previousPlayers, 
@@ -366,6 +399,21 @@ public class InternalRoundState : IRoundState<Player, Board, Board.Row, Board.Ti
         EndTime = EndTime,
         RoundNumber = RoundNumber
     };
+
+    public InternalRoundStateSnapshot ToSnapshot(Func<Player, string?> botPersonalitySelector)
+    {
+        return new InternalRoundStateSnapshot
+        {
+            CorrectAnswer = CorrectAnswer,
+            Status = Status,
+            StartTime = StartTime,
+            EndTime = EndTime,
+            RoundNumber = RoundNumber,
+            MaxGuesses = MaxGuesses,
+            DefaultTimeLimitSeconds = _defaultTimeLimitSeconds,
+            Players = Players.Select(x => x.ToSnapshot(botPersonalitySelector(x))).ToList()
+        };
+    }
 }
 
 public enum RoundStatus

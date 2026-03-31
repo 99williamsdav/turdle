@@ -7,6 +7,7 @@ using System.IO.Compression;
 using Turdle;
 using Turdle.Bots;
 using Turdle.Hubs;
+using Turdle.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
@@ -59,10 +60,12 @@ builder.Services.AddSingleton<RoomAvatarService>();
 builder.Services.AddSingleton<BotFactory>();
 builder.Services.AddSingleton<IPointService, PointService>();
 builder.Services.AddSingleton<IWordAnalysisService, WordAnalysisService>();
+builder.Services.AddSingleton<IRoomStateRepository, SqliteRoomStateRepository>();
 
 // config
 builder.Services.Configure<ChatGptSettings>(builder.Configuration.GetSection("ChatGpt"));
 builder.Services.Configure<RoomBufferSettings>(builder.Configuration.GetSection("RoomBuffer"));
+builder.Services.Configure<RoomPersistenceSettings>(builder.Configuration.GetSection("RoomPersistence"));
 
 var app = builder.Build();
 

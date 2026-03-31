@@ -1,4 +1,5 @@
 ﻿using Turdle.Bots;
+using Turdle.Persistence;
 
 namespace Turdle.Models;
 
@@ -85,6 +86,43 @@ public class Player : IPlayer<Board, Board.Row, Board.Tile>
             Ready = Ready,
             Board = Board?.Mask()
         };
+    }
+
+    public PlayerSnapshot ToSnapshot(string? botPersonality)
+    {
+        return new PlayerSnapshot
+        {
+            Alias = Alias,
+            Points = Points,
+            Rank = Rank,
+            IsJointRank = IsJointRank,
+            ConnectionId = ConnectionId,
+            IpAddress = IpAddress,
+            IsConnected = IsConnected,
+            RegisteredAt = RegisteredAt,
+            AvatarPath = AvatarPath,
+            Ready = Ready,
+            IsBot = IsBot,
+            BotPersonality = botPersonality
+        };
+    }
+
+    public static Player Restore(PlayerSnapshot snapshot, IBot? bot)
+    {
+        var player = bot != null
+            ? new Player(snapshot.Alias, bot, snapshot.AvatarPath)
+            : new Player(snapshot.Alias, snapshot.ConnectionId, snapshot.IpAddress ?? "", snapshot.AvatarPath);
+
+        player.Points = snapshot.Points;
+        player.Rank = snapshot.Rank;
+        player.IsJointRank = snapshot.IsJointRank;
+        player.ConnectionId = snapshot.ConnectionId;
+        player.IpAddress = snapshot.IpAddress;
+        player.IsConnected = snapshot.IsConnected;
+        player.RegisteredAt = snapshot.RegisteredAt;
+        player.Ready = snapshot.Ready;
+
+        return player;
     }
 }
 
