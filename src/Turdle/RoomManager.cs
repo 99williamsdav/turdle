@@ -92,7 +92,7 @@ public class RoomManager
 
         if (_roomBufferSettings.TargetSize > 0)
         {
-            _ = Task.Run(FillPrewarmedBuffer);
+            _ = Task.Run(InitialisePrewarmedBuffer);
         }
     }
 
@@ -115,7 +115,7 @@ public class RoomManager
                 _ = Task.Run(FillPrewarmedBuffer);
             }
 
-            await PersistRoom(prewarmedRoom);
+            await PersistRoom(prewarmedRoom, isBuffered: false);
             await BroadcastRooms();
             return prewarmedRoom.RoomCode;
         }
@@ -124,13 +124,49 @@ public class RoomManager
         var room = CreateRoomInstance(roomCode);
         _rooms.TryAdd(roomCode, room);
 
-        _logger.LogInformation("Initialising room synchronously because prewarmed buffer is empty");
+        _logger.LogInformation("Initialising new room because prewarmed buffer is empty");
         await room.Init();
-        _logger.LogInformation("Room initialised (synchronous fallback)");
 
-        await PersistRoom(room);
+        await PersistRoom(room, isBuffered: false);
         await BroadcastRooms();
         return roomCode;
+    }
+
+    private async Task InitialisePrewarmedBuffer()
+    {
+        await RestorePersistedPrewarmedRooms();
+        await FillPrewarmedBuffer();
+    }
+
+    private async Task RestorePersistedPrewarmedRooms()
+    {
+        var bufferedSnapshots = await _roomStateRepository.GetBuffered();
+        foreach (var snapshot in bufferedSnapshots)
+        {
+            if (_prewarmedRooms.Count >= _roomBufferSettings.TargetSize)
+            {
+                break;
+            }
+
+            if (_rooms.ContainsKey(snapshot.RoomCode))
+            {
+                continue;
+            }
+
+            _logger.LogInformation($"Loaded prewarmed room {snapshot.RoomCode} into buffer from DB");
+            AddPrewarmedRoomCodeReservation(snapshot.RoomCode);
+            var room = CreateRoomInstance(snapshot.RoomCode);
+            room.RestoreFromSnapshot(snapshot);
+            _prewarmedRooms.Enqueue(room);
+        }
+
+        if (bufferedSnapshots.Count > 0)
+        {
+            _logger.LogInformation(
+                "Reloaded {bufferedCount} prewarmed rooms from SQLite. Buffered rooms: {queueCount}",
+                bufferedSnapshots.Count,
+                _prewarmedRooms.Count);
+        }
     }
 
     public async Task<Room> GetRoom(string roomCode, string? connectionId = null)
@@ -217,6 +253,7 @@ public class RoomManager
                     _logger.LogInformation("Prewarming room {roomCode}", roomCode);
                     await room.Init();
                     _prewarmedRooms.Enqueue(room);
+                    await PersistRoom(room, isBuffered: true);
                     _logger.LogInformation(
                         "Prewarmed room {roomCode}. Buffered rooms: {bufferCount}",
                         roomCode,
@@ -250,7 +287,7 @@ public class RoomManager
             _botFactory,
             _avatarService,
             _roomAvatarService,
-            snapshot => PersistRoom(snapshot));
+                snapshot => PersistRoom(snapshot, isBuffered: false));
     }
 
     private async Task<Room?> TryLoadPersistedRoom(string roomCode)
@@ -274,10 +311,11 @@ public class RoomManager
         return existing;
     }
 
-    private Task PersistRoom(Room room) => PersistRoom(room.ToSnapshot());
+    private Task PersistRoom(Room room, bool isBuffered) => PersistRoom(room.ToSnapshot(), isBuffered);
 
-    private Task PersistRoom(RoomStateSnapshot snapshot)
+    private Task PersistRoom(RoomStateSnapshot snapshot, bool isBuffered)
     {
+        snapshot.IsBuffered = isBuffered;
         return _roomStateRepository.Upsert(snapshot);
     }
 
@@ -317,6 +355,14 @@ public class RoomManager
         lock (_roomCodeReservationLock)
         {
             _prewarmedRoomCodes.Remove(roomCode);
+        }
+    }
+
+    private void AddPrewarmedRoomCodeReservation(string roomCode)
+    {
+        lock (_roomCodeReservationLock)
+        {
+            _prewarmedRoomCodes.Add(roomCode);
         }
     }
 

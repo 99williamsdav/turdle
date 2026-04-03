@@ -5,6 +5,7 @@ namespace Turdle.Persistence;
 public class RoomStateSnapshot
 {
     public string RoomCode { get; set; } = string.Empty;
+    public bool IsBuffered { get; set; }
     public DateTime CreatedOn { get; set; }
     public string? ImagePath { get; set; }
     public string? AdminConnectionId { get; set; }
