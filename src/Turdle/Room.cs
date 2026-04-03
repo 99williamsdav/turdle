@@ -116,8 +116,8 @@ public class Room
             _playersByConnectionId.Clear();
             _adminConnections.Clear();
             _tvConnections.Clear();
-
-            RecreateTimersLocked();
+            
+            // TODO do we need to do anything with _internalRoundState?
         }
     }
 
@@ -966,32 +966,6 @@ public class Room
         catch (Exception e)
         {
             _logger.LogError(e, "Error persisting room state {roomCode}", _roomCode);
-        }
-    }
-
-    private void RecreateTimersLocked()
-    {
-        _startTimer?.Stop();
-        foreach (var (timer, _) in _guessTimers)
-        {
-            timer.Stop();
-        }
-        _guessTimers.Clear();
-
-        if (_internalRoundState.Status == RoundStatus.Starting)
-        {
-            var dueAt = _internalRoundState.StartTime ?? DateTime.Now;
-            var ms = Math.Max((dueAt - DateTime.Now).TotalMilliseconds, 100);
-            _startTimer = new Timer(ms);
-            _startTimer.Elapsed += async (_, _) => await StartRoundInternal();
-            _startTimer.Start();
-            return;
-        }
-
-        if (_internalRoundState.Status == RoundStatus.Playing)
-        {
-            SetupGuessTimersLocked();
-            InitBotGuesses();
         }
     }
 
