@@ -119,6 +119,13 @@ ALTER TABLE rooms ADD COLUMN is_buffered INTEGER NOT NULL DEFAULT 0;";
             // Column already exists; safe to continue.
         }
 
+        using var indexCommand = connection.CreateCommand();
+        indexCommand.CommandText = @"
+CREATE INDEX IF NOT EXISTS idx_rooms_buffered
+ON rooms(is_buffered)
+WHERE is_buffered = 1;";
+        indexCommand.ExecuteNonQuery();
+
         _logger.LogInformation("SQLite room persistence initialized");
     }
 }
